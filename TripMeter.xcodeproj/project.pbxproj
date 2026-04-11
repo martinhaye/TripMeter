@@ -1,0 +1,669 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BF0000000000000000000001 /* PBKDF2.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000001 /* PBKDF2.swift */; };
+		BF0000000000000000000002 /* SecureBytes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000002 /* SecureBytes.swift */; };
+		BF0000000000000000000003 /* KeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000003 /* KeyManager.swift */; };
+		BF0000000000000000000004 /* NoteEncryptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000004 /* NoteEncryptor.swift */; };
+		BF0000000000000000000005 /* NotePayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000005 /* NotePayload.swift */; };
+		BF0000000000000000000006 /* Trip.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000006 /* Trip.swift */; };
+		BF0000000000000000000007 /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000007 /* Note.swift */; };
+		BF0000000000000000000008 /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000008 /* AppConstants.swift */; };
+		BF0000000000000000000009 /* ModelContainer+Shared.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000009 /* ModelContainer+Shared.swift */; };
+		BF000000000000000000000A /* AppSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR000000000000000000000A /* AppSession.swift */; };
+		BF000000000000000000000B /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR000000000000000000000B /* DeepLink.swift */; };
+		BF000000000000000000000C /* TripMeterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR000000000000000000000C /* TripMeterApp.swift */; };
+		BF000000000000000000000D /* NoteCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR000000000000000000000D /* NoteCaptureService.swift */; };
+		BF000000000000000000000E /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR000000000000000000000E /* UserSettings.swift */; };
+		BF000000000000000000000F /* SharedCaptureFlag.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR000000000000000000000F /* SharedCaptureFlag.swift */; };
+		BF0000000000000000000010 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000010 /* OnboardingView.swift */; };
+		BF0000000000000000000011 /* TripPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000011 /* TripPickerSheet.swift */; };
+		BF0000000000000000000012 /* CaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000012 /* CaptureView.swift */; };
+		BF0000000000000000000013 /* UnlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000013 /* UnlockView.swift */; };
+		BF0000000000000000000014 /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000014 /* ReviewView.swift */; };
+		BF0000000000000000000015 /* TripDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000015 /* TripDetailView.swift */; };
+		BF0000000000000000000016 /* NoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000016 /* NoteDetailView.swift */; };
+		BF0000000000000000000017 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000017 /* SettingsView.swift */; };
+		BF0000000000000000000018 /* RootCoordinatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000018 /* RootCoordinatorView.swift */; };
+		BF0000000000000000000019 /* AddNoteIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000019 /* AddNoteIntent.swift */; };
+		BF000000000000000000001A /* TripMeterShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR000000000000000000001A /* TripMeterShortcuts.swift */; };
+		BF000000000000000000001B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FR000000000000000000001B /* Assets.xcassets */; };
+		BF0000000000000000000020 /* TripMeterWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000020 /* TripMeterWidgetBundle.swift */; };
+		BF0000000000000000000021 /* CaptureControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000021 /* CaptureControl.swift */; };
+		BF0000000000000000000022 /* OpenCaptureIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000022 /* OpenCaptureIntent.swift */; };
+		BF0000000000000000000023 /* WidgetSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000023 /* WidgetSupport.swift */; };
+		BF0000000000000000000024 /* TripMeterWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000025 /* TripMeterWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		PX0000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = PR0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = TG0000000000000000000002;
+			remoteInfo = TripMeterWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		EMB0000000000000000000001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				BF0000000000000000000024 /* TripMeterWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		FR0000000000000000000001 /* PBKDF2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PBKDF2.swift; sourceTree = "<group>"; };
+		FR0000000000000000000002 /* SecureBytes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureBytes.swift; sourceTree = "<group>"; };
+		FR0000000000000000000003 /* KeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyManager.swift; sourceTree = "<group>"; };
+		FR0000000000000000000004 /* NoteEncryptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteEncryptor.swift; sourceTree = "<group>"; };
+		FR0000000000000000000005 /* NotePayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotePayload.swift; sourceTree = "<group>"; };
+		FR0000000000000000000006 /* Trip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Trip.swift; sourceTree = "<group>"; };
+		FR0000000000000000000007 /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
+		FR0000000000000000000008 /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
+		FR0000000000000000000009 /* ModelContainer+Shared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ModelContainer+Shared.swift"; sourceTree = "<group>"; };
+		FR000000000000000000000A /* AppSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSession.swift; sourceTree = "<group>"; };
+		FR000000000000000000000B /* DeepLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLink.swift; sourceTree = "<group>"; };
+		FR000000000000000000000C /* TripMeterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripMeterApp.swift; sourceTree = "<group>"; };
+		FR000000000000000000000D /* NoteCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteCaptureService.swift; sourceTree = "<group>"; };
+		FR000000000000000000000E /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
+		FR000000000000000000000F /* SharedCaptureFlag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCaptureFlag.swift; sourceTree = "<group>"; };
+		FR0000000000000000000010 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		FR0000000000000000000011 /* TripPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripPickerSheet.swift; sourceTree = "<group>"; };
+		FR0000000000000000000012 /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureView.swift; sourceTree = "<group>"; };
+		FR0000000000000000000013 /* UnlockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnlockView.swift; sourceTree = "<group>"; };
+		FR0000000000000000000014 /* ReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewView.swift; sourceTree = "<group>"; };
+		FR0000000000000000000015 /* TripDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripDetailView.swift; sourceTree = "<group>"; };
+		FR0000000000000000000016 /* NoteDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteDetailView.swift; sourceTree = "<group>"; };
+		FR0000000000000000000017 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		FR0000000000000000000018 /* RootCoordinatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootCoordinatorView.swift; sourceTree = "<group>"; };
+		FR0000000000000000000019 /* AddNoteIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddNoteIntent.swift; sourceTree = "<group>"; };
+		FR000000000000000000001A /* TripMeterShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripMeterShortcuts.swift; sourceTree = "<group>"; };
+		FR000000000000000000001B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FR000000000000000000001C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FR000000000000000000001D /* TripMeter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TripMeter.entitlements; sourceTree = "<group>"; };
+		FR000000000000000000001E /* TripMeter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TripMeter.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FR0000000000000000000020 /* TripMeterWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripMeterWidgetBundle.swift; sourceTree = "<group>"; };
+		FR0000000000000000000021 /* CaptureControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureControl.swift; sourceTree = "<group>"; };
+		FR0000000000000000000022 /* OpenCaptureIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenCaptureIntent.swift; sourceTree = "<group>"; };
+		FR0000000000000000000023 /* WidgetSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSupport.swift; sourceTree = "<group>"; };
+		FR0000000000000000000024 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FR0000000000000000000025 /* TripMeterWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TripMeterWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FR0000000000000000000026 /* TripMeterWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TripMeterWidget.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FW0000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FW0000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		GR0000000000000000000000 = {
+			isa = PBXGroup;
+			children = (
+				GR0000000000000000000001 /* TripMeter */,
+				GR0000000000000000000002 /* TripMeterWidget */,
+				GR0000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		GR0000000000000000000001 /* TripMeter */ = {
+			isa = PBXGroup;
+			children = (
+				GR0000000000000000000010 /* Crypto */,
+				GR0000000000000000000011 /* Models */,
+				GR0000000000000000000012 /* App */,
+				GR0000000000000000000013 /* Persistence */,
+				GR0000000000000000000014 /* Services */,
+				GR0000000000000000000015 /* Views */,
+				GR0000000000000000000016 /* Intents */,
+				GR0000000000000000000017 /* Resources */,
+				FR000000000000000000001D /* TripMeter.entitlements */,
+			);
+			path = TripMeter;
+			sourceTree = "<group>";
+		};
+		GR0000000000000000000002 /* TripMeterWidget */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000000000000000000020 /* TripMeterWidgetBundle.swift */,
+				FR0000000000000000000021 /* CaptureControl.swift */,
+				FR0000000000000000000022 /* OpenCaptureIntent.swift */,
+				FR0000000000000000000023 /* WidgetSupport.swift */,
+				FR0000000000000000000024 /* Info.plist */,
+				FR0000000000000000000026 /* TripMeterWidget.entitlements */,
+			);
+			path = TripMeterWidget;
+			sourceTree = "<group>";
+		};
+		GR0000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FR000000000000000000001E /* TripMeter.app */,
+				FR0000000000000000000025 /* TripMeterWidgetExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		GR0000000000000000000010 /* Crypto */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000000000000000000001 /* PBKDF2.swift */,
+				FR0000000000000000000002 /* SecureBytes.swift */,
+				FR0000000000000000000003 /* KeyManager.swift */,
+				FR0000000000000000000004 /* NoteEncryptor.swift */,
+			);
+			path = Crypto;
+			sourceTree = "<group>";
+		};
+		GR0000000000000000000011 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000000000000000000005 /* NotePayload.swift */,
+				FR0000000000000000000006 /* Trip.swift */,
+				FR0000000000000000000007 /* Note.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		GR0000000000000000000012 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000000000000000000008 /* AppConstants.swift */,
+				FR000000000000000000000A /* AppSession.swift */,
+				FR000000000000000000000B /* DeepLink.swift */,
+				FR000000000000000000000C /* TripMeterApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		GR0000000000000000000013 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000000000000000000009 /* ModelContainer+Shared.swift */,
+			);
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		GR0000000000000000000014 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				FR000000000000000000000D /* NoteCaptureService.swift */,
+				FR000000000000000000000E /* UserSettings.swift */,
+				FR000000000000000000000F /* SharedCaptureFlag.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		GR0000000000000000000015 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000000000000000000010 /* OnboardingView.swift */,
+				FR0000000000000000000011 /* TripPickerSheet.swift */,
+				FR0000000000000000000012 /* CaptureView.swift */,
+				FR0000000000000000000013 /* UnlockView.swift */,
+				FR0000000000000000000014 /* ReviewView.swift */,
+				FR0000000000000000000015 /* TripDetailView.swift */,
+				FR0000000000000000000016 /* NoteDetailView.swift */,
+				FR0000000000000000000017 /* SettingsView.swift */,
+				FR0000000000000000000018 /* RootCoordinatorView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		GR0000000000000000000016 /* Intents */ = {
+			isa = PBXGroup;
+			children = (
+				FR0000000000000000000019 /* AddNoteIntent.swift */,
+				FR000000000000000000001A /* TripMeterShortcuts.swift */,
+			);
+			path = Intents;
+			sourceTree = "<group>";
+		};
+		GR0000000000000000000017 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FR000000000000000000001B /* Assets.xcassets */,
+				FR000000000000000000001C /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		TG0000000000000000000001 /* TripMeter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CL0000000000000000000002 /* Build configuration list for PBXNativeTarget "TripMeter" */;
+			buildPhases = (
+				SRC0000000000000000000001 /* Sources */,
+				FW0000000000000000000001 /* Frameworks */,
+				RES0000000000000000000001 /* Resources */,
+				EMB0000000000000000000001 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				TD0000000000000000000001 /* PBXTargetDependency */,
+			);
+			name = TripMeter;
+			productName = TripMeter;
+			productReference = FR000000000000000000001E /* TripMeter.app */;
+			productType = "com.apple.product-type.application";
+		};
+		TG0000000000000000000002 /* TripMeterWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CL0000000000000000000004 /* Build configuration list for PBXNativeTarget "TripMeterWidgetExtension" */;
+			buildPhases = (
+				SRC0000000000000000000002 /* Sources */,
+				FW0000000000000000000002 /* Frameworks */,
+				RES0000000000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TripMeterWidgetExtension;
+			productName = TripMeterWidgetExtension;
+			productReference = FR0000000000000000000025 /* TripMeterWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		PR0000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					TG0000000000000000000001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					TG0000000000000000000002 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = CL0000000000000000000001 /* Build configuration list for PBXProject "TripMeter" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = GR0000000000000000000000;
+			productRefGroup = GR0000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				TG0000000000000000000001 /* TripMeter */,
+				TG0000000000000000000002 /* TripMeterWidgetExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		RES0000000000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF000000000000000000001B /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		RES0000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		SRC0000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF0000000000000000000001 /* PBKDF2.swift in Sources */,
+				BF0000000000000000000002 /* SecureBytes.swift in Sources */,
+				BF0000000000000000000003 /* KeyManager.swift in Sources */,
+				BF0000000000000000000004 /* NoteEncryptor.swift in Sources */,
+				BF0000000000000000000005 /* NotePayload.swift in Sources */,
+				BF0000000000000000000006 /* Trip.swift in Sources */,
+				BF0000000000000000000007 /* Note.swift in Sources */,
+				BF0000000000000000000008 /* AppConstants.swift in Sources */,
+				BF0000000000000000000009 /* ModelContainer+Shared.swift in Sources */,
+				BF000000000000000000000A /* AppSession.swift in Sources */,
+				BF000000000000000000000B /* DeepLink.swift in Sources */,
+				BF000000000000000000000C /* TripMeterApp.swift in Sources */,
+				BF000000000000000000000D /* NoteCaptureService.swift in Sources */,
+				BF000000000000000000000E /* UserSettings.swift in Sources */,
+				BF000000000000000000000F /* SharedCaptureFlag.swift in Sources */,
+				BF0000000000000000000010 /* OnboardingView.swift in Sources */,
+				BF0000000000000000000011 /* TripPickerSheet.swift in Sources */,
+				BF0000000000000000000012 /* CaptureView.swift in Sources */,
+				BF0000000000000000000013 /* UnlockView.swift in Sources */,
+				BF0000000000000000000014 /* ReviewView.swift in Sources */,
+				BF0000000000000000000015 /* TripDetailView.swift in Sources */,
+				BF0000000000000000000016 /* NoteDetailView.swift in Sources */,
+				BF0000000000000000000017 /* SettingsView.swift in Sources */,
+				BF0000000000000000000018 /* RootCoordinatorView.swift in Sources */,
+				BF0000000000000000000019 /* AddNoteIntent.swift in Sources */,
+				BF000000000000000000001A /* TripMeterShortcuts.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		SRC0000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF0000000000000000000020 /* TripMeterWidgetBundle.swift in Sources */,
+				BF0000000000000000000021 /* CaptureControl.swift in Sources */,
+				BF0000000000000000000022 /* OpenCaptureIntent.swift in Sources */,
+				BF0000000000000000000023 /* WidgetSupport.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		TD0000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = TG0000000000000000000002 /* TripMeterWidgetExtension */;
+			targetProxy = PX0000000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		BC0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BC0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		BC0000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = TripMeter/TripMeter.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XNFRLUM4TA;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TripMeter/Resources/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tripmeter.TripMeter;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BC0000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = TripMeter/TripMeter.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XNFRLUM4TA;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TripMeter/Resources/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tripmeter.TripMeter;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BC0000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = TripMeterWidget/TripMeterWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XNFRLUM4TA;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TripMeterWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TripMeter;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tripmeter.TripMeter.TripMeterWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BC0000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = TripMeterWidget/TripMeterWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XNFRLUM4TA;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = TripMeterWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TripMeter;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tripmeter.TripMeter.TripMeterWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CL0000000000000000000001 /* Build configuration list for PBXProject "TripMeter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC0000000000000000000001 /* Debug */,
+				BC0000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CL0000000000000000000002 /* Build configuration list for PBXNativeTarget "TripMeter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC0000000000000000000003 /* Debug */,
+				BC0000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CL0000000000000000000004 /* Build configuration list for PBXNativeTarget "TripMeterWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC0000000000000000000005 /* Debug */,
+				BC0000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = PR0000000000000000000001 /* Project object */;
+}
