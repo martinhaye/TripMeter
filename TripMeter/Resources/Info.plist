@@ -35,6 +35,8 @@
 	</array>
 	<key>NSSiriUsageDescription</key>
 	<string>Trip Meter uses Siri to capture encrypted notes hands-free.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>Trip Meter imports reminder items into encrypted notes when you choose a reminders list.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

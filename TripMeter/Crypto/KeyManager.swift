@@ -7,6 +7,7 @@ enum KeyManagerError: Error, LocalizedError {
     case invalidWrappedPayload
     case decryptionFailed
     case notConfigured
+    case invalidPassphrase
 
     var errorDescription: String? {
         switch self {
@@ -18,6 +19,8 @@ enum KeyManagerError: Error, LocalizedError {
             return "Could not decrypt private key (wrong passphrase?)."
         case .notConfigured:
             return "Encryption is not set up yet."
+        case .invalidPassphrase:
+            return "Current passphrase is incorrect."
         }
     }
 }
@@ -40,25 +43,7 @@ enum KeyManager {
     static func createKeys(passphrase: String) throws {
         let privateKey = Curve25519.KeyAgreement.PrivateKey()
         let publicKey = privateKey.publicKey
-        let salt = Data((0..<16).map { _ in UInt8.random(in: 0...255) })
-        let wrappingKeyData = try PBKDF2.deriveKey(
-            password: Data(passphrase.utf8),
-            salt: salt,
-            iterations: iterations
-        )
-        let wrappingKey = SymmetricKey(data: wrappingKeyData)
-        let privateRaw = privateKey.rawRepresentation
-        let sealed = try AES.GCM.seal(privateRaw, using: wrappingKey)
-
-        guard let combined = sealed.combined else {
-            throw KeyManagerError.decryptionFailed
-        }
-
-        let wrapped = WrappedPrivateKey(
-            salt: salt.base64EncodedString(),
-            wrappedPrivateKey: combined.base64EncodedString()
-        )
-        let wrappedJSON = try JSONEncoder().encode(wrapped)
+        let wrappedJSON = try wrapPrivateKeyRaw(privateKey.rawRepresentation, passphrase: passphrase)
         try savePublicKey(publicKey.rawRepresentation)
         try saveWrappedPrivate(wrappedJSON)
     }
@@ -67,6 +52,48 @@ enum KeyManager {
         guard let wrappedJSON = loadWrappedPrivate() else {
             throw KeyManagerError.notConfigured
         }
+        return try unwrapPrivateKeyFromJSON(passphrase: passphrase, wrappedJSON: wrappedJSON)
+    }
+
+    static func unwrapPrivateKey(passphrase: String, wrappedJSON: Data) throws -> SecureBytes {
+        return try unwrapPrivateKeyFromJSON(passphrase: passphrase, wrappedJSON: wrappedJSON)
+    }
+
+    static func changePassphrase(currentPassphrase: String, newPassphrase: String) throws {
+        guard !newPassphrase.isEmpty else {
+            throw KeyManagerError.invalidPassphrase
+        }
+        let privateKey = try unwrapPrivateKey(passphrase: currentPassphrase)
+        let rewrapped = try privateKey.withUnsafeBytes { raw in
+            try wrapPrivateKeyRaw(Data(raw), passphrase: newPassphrase)
+        }
+        try saveWrappedPrivate(rewrapped)
+    }
+
+    static func exportWrappedPrivateKeyJSON() throws -> Data {
+        guard let wrapped = loadWrappedPrivate() else {
+            throw KeyManagerError.notConfigured
+        }
+        return wrapped
+    }
+
+    static func exportPublicKeyRaw() throws -> Data {
+        guard let raw = loadPublicKeyRaw() else {
+            throw KeyManagerError.notConfigured
+        }
+        return raw
+    }
+
+    static func importPublicKeyRaw(_ data: Data) throws {
+        try savePublicKey(data)
+    }
+
+    static func importWrappedPrivateKeyJSON(_ data: Data) throws {
+        _ = try JSONDecoder().decode(WrappedPrivateKey.self, from: data)
+        try saveWrappedPrivate(data)
+    }
+
+    private static func unwrapPrivateKeyFromJSON(passphrase: String, wrappedJSON: Data) throws -> SecureBytes {
         let wrapped = try JSONDecoder().decode(WrappedPrivateKey.self, from: wrappedJSON)
         guard let salt = Data(base64Encoded: wrapped.salt),
               let combined = Data(base64Encoded: wrapped.wrappedPrivateKey)
@@ -81,7 +108,12 @@ enum KeyManager {
         )
         let wrappingKey = SymmetricKey(data: wrappingKeyData)
         let box = try AES.GCM.SealedBox(combined: combined)
-        let privateRaw = try AES.GCM.open(box, using: wrappingKey)
+        let privateRaw: Data
+        do {
+            privateRaw = try AES.GCM.open(box, using: wrappingKey)
+        } catch {
+            throw KeyManagerError.decryptionFailed
+        }
         return SecureBytes(data: privateRaw)
     }
 
@@ -111,6 +143,25 @@ enum KeyManager {
     private struct WrappedPrivateKey: Codable {
         var salt: String
         var wrappedPrivateKey: String
+    }
+
+    private static func wrapPrivateKeyRaw(_ privateRaw: Data, passphrase: String) throws -> Data {
+        let salt = Data((0..<16).map { _ in UInt8.random(in: 0...255) })
+        let wrappingKeyData = try PBKDF2.deriveKey(
+            password: Data(passphrase.utf8),
+            salt: salt,
+            iterations: iterations
+        )
+        let wrappingKey = SymmetricKey(data: wrappingKeyData)
+        let sealed = try AES.GCM.seal(privateRaw, using: wrappingKey)
+        guard let combined = sealed.combined else {
+            throw KeyManagerError.decryptionFailed
+        }
+        let wrapped = WrappedPrivateKey(
+            salt: salt.base64EncodedString(),
+            wrappedPrivateKey: combined.base64EncodedString()
+        )
+        return try JSONEncoder().encode(wrapped)
     }
 
     private static func savePublicKey(_ data: Data) throws {

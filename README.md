@@ -35,6 +35,29 @@ Siri runs the **Add Trip Note** intent (you may need to confirm parameters in th
 - Note bodies are encrypted with a **Curve25519** public key; the private key is **PBKDF2-wrapped** (600k iterations) with your passphrase.
 - Trip names and timestamps are **plaintext** by design so you can pick a trip without unlocking.
 - Review sessions **auto-lock** after the delay in **Settings** when the app backgrounds.
+- Changing password re-wraps the same private key; notes are not re-encrypted.
+
+## Unlocked utilities
+
+When Review is unlocked, **Settings** includes a **Data & Security** section:
+
+- **Change Password**: asks for current password, new password, and confirmation, then re-wraps your private key.
+- **Import from Reminders**: requests Reminders access, lets you pick a reminders list, and imports all items.
+- **Backup**: exports a versioned JSON backup file named `tripmeter-backup-YYYY-MM-DD.json`.
+- **Restore**: validates backup format/version, asks for backup password, decrypts backup entries, and re-encrypts to your current key.
+- **Delete All**: requires typing `DELETE` and permanently removes all trips and notes.
+
+### Backup format (v1)
+
+Backup JSON includes:
+
+- `version` (currently `1`)
+- `createdAt` (backup timestamp)
+- current public key (base64)
+- wrapped private key package JSON (base64)
+- all trips + notes with encrypted payload bytes (base64)
+
+Backups are intentionally unreadable without the backup password needed to unwrap the backed-up private key.
 
 ## App icon
 
