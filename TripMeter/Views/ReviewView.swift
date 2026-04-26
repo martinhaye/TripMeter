@@ -45,16 +45,24 @@ struct ReviewView: View {
                     description: Text("Capture notes to create trips.")
                 )
             } else {
-                List {
-                    ForEach(filteredTrips, id: \.id) { trip in
-                        NavigationLink {
-                            TripDetailView(trip: trip)
-                        } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(trip.name).font(.headline)
-                                Text("\(trip.notes.count) notes")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Total notes: \(totalVisibleNotes)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal)
+                        .padding(.top, 4)
+
+                    List {
+                        ForEach(filteredTrips, id: \.id) { trip in
+                            NavigationLink {
+                                TripDetailView(trip: trip)
+                            } label: {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(trip.name).font(.headline)
+                                    Text("\(trip.notes.count) notes")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
                         }
                     }
@@ -84,6 +92,12 @@ struct ReviewView: View {
                 (try? NoteEncryptor.decrypt(blob: note.encryptedPayload, privateKey: key))?
                     .text.localizedCaseInsensitiveContains(q) ?? false
             }
+        }
+    }
+
+    private var totalVisibleNotes: Int {
+        filteredTrips.reduce(into: 0) { total, trip in
+            total += trip.notes.count
         }
     }
 }

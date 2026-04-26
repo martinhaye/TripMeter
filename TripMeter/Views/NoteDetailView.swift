@@ -5,6 +5,7 @@ struct NoteDetailView: View {
     let trip: Trip
     @State private var selectedNoteID: PersistentIdentifier
     @Environment(AppSession.self) private var session
+    @Environment(\.dismiss) private var dismiss
 
     init(trip: Trip, note: Note) {
         self.trip = trip
@@ -42,6 +43,8 @@ struct NoteDetailView: View {
         .onChange(of: trip.notes.count) { _, _ in
             if currentNote == nil, let first = orderedNotes.first {
                 selectedNoteID = first.persistentModelID
+            } else if orderedNotes.isEmpty {
+                dismiss()
             }
         }
     }
@@ -58,6 +61,7 @@ private struct NoteDetailPage: View {
     @State private var source = "typed"
     @State private var loadError: String?
     @State private var saveError: String?
+    @State private var showDeleteConfirm = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -71,16 +75,36 @@ private struct NoteDetailPage: View {
             if let saveError {
                 Text(saveError).foregroundStyle(.red).font(.caption)
             }
-            Button(action: save) {
-                Text("Save")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
+            HStack(spacing: 10) {
+                Button(role: .destructive) {
+                    showDeleteConfirm = true
+                } label: {
+                    Text("Delete")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .disabled(session.unlockedPrivateKey == nil)
+
+                Button(action: save) {
+                    Text("Save")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(session.unlockedPrivateKey == nil)
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(session.unlockedPrivateKey == nil)
         }
         .padding()
         .onAppear(perform: load)
+        .alert("Delete this note?", isPresented: $showDeleteConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                deleteNote()
+            }
+        } message: {
+            Text("This cannot be undone.")
+        }
     }
 
     private func load() {
@@ -109,6 +133,16 @@ private struct NoteDetailPage: View {
             let payload = NotePayload(text: text, editedAt: .now, source: source)
             let blob = try NoteEncryptor.encrypt(payload: payload, recipientPublic: publicKey)
             note.encryptedPayload = blob
+            try modelContext.save()
+        } catch {
+            saveError = error.localizedDescription
+        }
+    }
+
+    private func deleteNote() {
+        saveError = nil
+        do {
+            modelContext.delete(note)
             try modelContext.save()
         } catch {
             saveError = error.localizedDescription

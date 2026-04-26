@@ -459,10 +459,11 @@ private enum RemindersImportService {
         var imported = 0
         var previousCreatedAt: Date?
         for reminder in reminders {
+            guard !reminder.isCompleted else { continue }
             let title = reminder.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             let notes = reminder.notes?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             let text = sanitizeImportedText([title, notes].filter { !$0.isEmpty }.joined(separator: "\n\n"))
-            guard !text.isEmpty else { continue }
+            guard !text.isEmpty, !isDashOnlyText(text) else { continue }
             let baseCreatedAt = reminder.creationDate ?? reminder.lastModifiedDate ?? .now
             let createdAt: Date
             if let previousCreatedAt, baseCreatedAt <= previousCreatedAt {
@@ -498,7 +499,16 @@ private enum RemindersImportService {
     private static func isDashOnlyLine(_ value: String) -> Bool {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return false }
-        return trimmed.allSatisfy { $0 == "-" }
+        return trimmed.allSatisfy { $0 == "-" || $0 == "–" || $0 == "—" }
+    }
+
+    private static func isDashOnlyText(_ value: String) -> Bool {
+        let lines = value
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        guard !lines.isEmpty else { return false }
+        return lines.allSatisfy(isDashOnlyLine)
     }
 
     private static func fetchReminders(from calendar: EKCalendar) async throws -> [EKReminder] {
