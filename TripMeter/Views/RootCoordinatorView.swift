@@ -7,15 +7,18 @@ struct RootCoordinatorView: View {
 
     @State private var needsOnboarding = false
     @State private var lockWorkItem: DispatchWorkItem?
+    @State private var showBackupReminder = false
+    @State private var selectedTab = 0
 
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             NavigationStack {
                 CaptureView()
             }
             .tabItem {
                 Label("Capture", systemImage: "square.and.pencil")
             }
+            .tag(0)
 
             NavigationStack {
                 ReviewView()
@@ -23,6 +26,7 @@ struct RootCoordinatorView: View {
             .tabItem {
                 Label("Review", systemImage: "lock.open")
             }
+            .tag(1)
 
             NavigationStack {
                 SettingsView()
@@ -30,12 +34,17 @@ struct RootCoordinatorView: View {
             .tabItem {
                 Label("Settings", systemImage: "gearshape")
             }
+            .tag(2)
         }
         .onAppear {
             needsOnboarding = !KeyManager.hasKeys()
+            evaluateBackupReminder()
             if SharedCaptureFlag.consumePending() {
                 NotificationCenter.default.post(name: .tripMeterFocusCapture, object: nil)
             }
+        }
+        .onChange(of: session.isUnlocked) { _, _ in
+            evaluateBackupReminder()
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
@@ -57,6 +66,14 @@ struct RootCoordinatorView: View {
             guard url.scheme == AppConstants.captureURLScheme, url.host == "capture" else { return }
             NotificationCenter.default.post(name: .tripMeterFocusCapture, object: nil)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .tripMeterDidUnlock)) { _ in
+            selectedTab = 1
+        }
+        .alert("Backup Reminder", isPresented: $showBackupReminder) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(backupReminderMessage)
+        }
     }
 
     private func scheduleBackgroundLock() {
@@ -75,5 +92,20 @@ struct RootCoordinatorView: View {
     private func cancelBackgroundLock() {
         lockWorkItem?.cancel()
         lockWorkItem = nil
+    }
+
+    private func evaluateBackupReminder() {
+        guard session.shouldShowBackupReminder() else { return }
+        session.markBackupReminderShown()
+        showBackupReminder = true
+    }
+
+    private var backupReminderMessage: String {
+        if let lastBackup = UserSettings.lastBackupAt {
+            let f = DateFormatter()
+            f.dateStyle = .medium
+            return "Your last backup was \(f.string(from: lastBackup)). Consider creating a new backup in Settings > Data & Security."
+        }
+        return "No backup recorded yet. Create one in Settings > Data & Security."
     }
 }

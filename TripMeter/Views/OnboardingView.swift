@@ -20,10 +20,16 @@ struct OnboardingView: View {
                 }
 
                 Section("Passphrase") {
-                    SecureField("Passphrase", text: $passphrase)
-                        .textContentType(.newPassword)
-                    SecureField("Confirm passphrase", text: $confirm)
-                        .textContentType(.newPassword)
+                    TelephonePasscodeEntry(
+                        title: "Passphrase",
+                        text: $passphrase,
+                        isBusy: isSaving
+                    )
+                    TelephonePasscodeEntry(
+                        title: "Confirm passphrase",
+                        text: $confirm,
+                        isBusy: isSaving
+                    )
                 }
 
                 Section("Optional") {

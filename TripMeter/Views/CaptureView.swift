@@ -3,6 +3,7 @@ import SwiftUI
 
 struct CaptureView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppSession.self) private var session
     @FocusState private var noteFocused: Bool
 
     @State private var noteText = ""
@@ -10,6 +11,7 @@ struct CaptureView: View {
     @State private var showTripPicker = false
     @State private var saveError: String?
     @State private var didSaveFlash = false
+    @State private var showUnlock = false
 
     private var todayName: String {
         NoteCaptureService.todayTripName()
@@ -60,13 +62,6 @@ struct CaptureView: View {
                 .fontWeight(.semibold)
                 .disabled(!canSave)
             }
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") {
-                    noteFocused = false
-                }
-                .fontWeight(.semibold)
-            }
         }
         .onAppear {
             if selectedTripName.isEmpty {
@@ -77,8 +72,36 @@ struct CaptureView: View {
         .onReceive(NotificationCenter.default.publisher(for: .tripMeterFocusCapture)) { _ in
             noteFocused = true
         }
+        .safeAreaInset(edge: .bottom) {
+            HStack(spacing: 12) {
+                if !session.isUnlocked {
+                    Button {
+                        showUnlock = true
+                    } label: {
+                        Label("Unlock", systemImage: "lock.open")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+
+                Button {
+                    noteFocused = false
+                } label: {
+                    Label("Hide Keyboard", systemImage: "keyboard.chevron.compact.down")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .disabled(!noteFocused)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(.ultraThinMaterial)
+        }
         .sheet(isPresented: $showTripPicker) {
             TripPickerSheet(selectedTripName: $selectedTripName, todayName: todayName)
+        }
+        .sheet(isPresented: $showUnlock) {
+            UnlockView()
         }
     }
 

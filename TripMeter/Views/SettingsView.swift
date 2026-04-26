@@ -130,6 +130,7 @@ struct SettingsView: View {
         ) { result in
             switch result {
             case .success:
+                UserSettings.lastBackupAt = .now
                 infoMessage = "Backup saved."
             case .failure(let error):
                 errorMessage = error.localizedDescription
@@ -282,17 +283,36 @@ private struct ChangePasswordSheet: View {
     @State private var oldPassphrase = ""
     @State private var newPassphrase = ""
     @State private var confirmPassphrase = ""
+    @State private var newHint = ""
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    SecureField("Current password", text: $oldPassphrase)
-                    SecureField("New password", text: $newPassphrase)
-                    SecureField("Confirm new password", text: $confirmPassphrase)
+                    TelephonePasscodeEntry(
+                        title: "Current password",
+                        text: $oldPassphrase,
+                        isBusy: isBusy
+                    )
+                    TelephonePasscodeEntry(
+                        title: "New password",
+                        text: $newPassphrase,
+                        isBusy: isBusy
+                    )
+                    TelephonePasscodeEntry(
+                        title: "Confirm new password",
+                        text: $confirmPassphrase,
+                        isBusy: isBusy
+                    )
+                }
+                Section("Optional") {
+                    TextField("New password hint", text: $newHint)
                 }
             }
             .navigationTitle("Change Password")
+            .onAppear {
+                newHint = KeyManager.loadPassphraseHint() ?? ""
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
@@ -313,6 +333,11 @@ private struct ChangePasswordSheet: View {
                             try KeyManager.changePassphrase(
                                 currentPassphrase: oldPassphrase,
                                 newPassphrase: newPassphrase
+                            )
+                            try KeyManager.savePassphraseHint(
+                                newHint.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                    ? nil
+                                    : newHint.trimmingCharacters(in: .whitespacesAndNewlines)
                             )
                             onDone("Password changed.")
                             dismiss()
@@ -337,7 +362,11 @@ private struct RestorePasswordSheet: View {
         NavigationStack {
             Form {
                 Section {
-                    SecureField("Backup password", text: $password)
+                    TelephonePasscodeEntry(
+                        title: "Backup password",
+                        text: $password,
+                        isBusy: isBusy
+                    )
                 }
             }
             .navigationTitle("Restore Backup")
@@ -417,13 +446,30 @@ private enum RemindersImportService {
     @MainActor
     static func importAllReminders(from calendar: EKCalendar, context: ModelContext) async throws -> Int {
         let reminders = try await fetchReminders(from: calendar)
+            .sorted { lhs, rhs in
+                let left = lhs.creationDate ?? lhs.lastModifiedDate ?? .distantPast
+                let right = rhs.creationDate ?? rhs.lastModifiedDate ?? .distantPast
+                if left == right {
+                    let leftID = lhs.calendarItemIdentifier
+                    let rightID = rhs.calendarItemIdentifier
+                    return leftID.localizedCaseInsensitiveCompare(rightID) == .orderedAscending
+                }
+                return left < right
+            }
         var imported = 0
+        var previousCreatedAt: Date?
         for reminder in reminders {
             let title = reminder.title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             let notes = reminder.notes?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            let text = [title, notes].filter { !$0.isEmpty }.joined(separator: "\n\n")
+            let text = sanitizeImportedText([title, notes].filter { !$0.isEmpty }.joined(separator: "\n\n"))
             guard !text.isEmpty else { continue }
-            let createdAt = reminder.creationDate ?? reminder.lastModifiedDate ?? .now
+            let baseCreatedAt = reminder.creationDate ?? reminder.lastModifiedDate ?? .now
+            let createdAt: Date
+            if let previousCreatedAt, baseCreatedAt <= previousCreatedAt {
+                createdAt = previousCreatedAt.addingTimeInterval(1)
+            } else {
+                createdAt = baseCreatedAt
+            }
             try NoteCaptureService.saveNote(
                 text: text,
                 tripName: NoteCaptureService.todayTripName(referenceDate: createdAt),
@@ -432,9 +478,27 @@ private enum RemindersImportService {
                 editedAt: reminder.lastModifiedDate ?? createdAt,
                 context: context
             )
+            previousCreatedAt = createdAt
             imported += 1
         }
         return imported
+    }
+
+    private static func sanitizeImportedText(_ raw: String) -> String {
+        var lines = raw.components(separatedBy: .newlines)
+        while let first = lines.first, isDashOnlyLine(first) {
+            lines.removeFirst()
+        }
+        while let last = lines.last, isDashOnlyLine(last) {
+            lines.removeLast()
+        }
+        return lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func isDashOnlyLine(_ value: String) -> Bool {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return false }
+        return trimmed.allSatisfy { $0 == "-" }
     }
 
     private static func fetchReminders(from calendar: EKCalendar) async throws -> [EKReminder] {

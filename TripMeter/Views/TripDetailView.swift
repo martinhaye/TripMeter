@@ -6,7 +6,12 @@ struct TripDetailView: View {
     @Environment(AppSession.self) private var session
 
     private var sortedNotes: [Note] {
-        trip.notes.sorted { $0.createdAt < $1.createdAt }
+        trip.notes.sorted { lhs, rhs in
+            if lhs.createdAt == rhs.createdAt {
+                return lhs.id.uuidString < rhs.id.uuidString
+            }
+            return lhs.createdAt < rhs.createdAt
+        }
     }
 
     var body: some View {
