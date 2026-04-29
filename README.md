@@ -66,6 +66,19 @@ Backup JSON includes:
 
 Backups are intentionally unreadable without the backup password needed to unwrap the backed-up private key.
 
+### Decode backup JSON with Python
+
+If you want to inspect backup contents outside the app, use `scripts/decode_backup.py`.
+
+The script includes inline dependency metadata, so `uv` can run it in one step.
+
+1. Decode a backup file:
+   - `uv run scripts/decode_backup.py /path/to/tripmeter-backup-YYYY-MM-DD.json --password "your-backup-password" --output decoded-backup.json`
+2. Or just validate/decrypt and print counts:
+   - `uv run scripts/decode_backup.py /path/to/tripmeter-backup-YYYY-MM-DD.json --password "your-backup-password" --summary-only`
+
+Output format includes trips/notes and each decrypted note payload (`text`, `editedAt`, `source`).
+
 ## App icon
 
 Add a 1024×1024 image under **Assets** → **AppIcon** before shipping to a device (optional for Simulator).
