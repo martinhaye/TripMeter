@@ -69,6 +69,12 @@ struct RootCoordinatorView: View {
         .onReceive(NotificationCenter.default.publisher(for: .tripMeterDidUnlock)) { _ in
             selectedTab = 1
         }
+        .overlay {
+            if scenePhase == .inactive {
+                Color(.systemBackground)
+                    .ignoresSafeArea()
+            }
+        }
         .alert("Backup Reminder", isPresented: $showBackupReminder) {
             Button("OK", role: .cancel) {}
         } message: {

@@ -1,4 +1,5 @@
 import CryptoKit
+import Darwin
 import Foundation
 import Security
 
@@ -101,18 +102,24 @@ enum KeyManager {
             throw KeyManagerError.invalidWrappedPayload
         }
 
-        let wrappingKeyData = try PBKDF2.deriveKey(
+        var wrappingKeyData = try PBKDF2.deriveKey(
             password: Data(passphrase.utf8),
             salt: salt,
             iterations: iterations
         )
+        defer {
+            zeroize(&wrappingKeyData)
+        }
         let wrappingKey = SymmetricKey(data: wrappingKeyData)
         let box = try AES.GCM.SealedBox(combined: combined)
-        let privateRaw: Data
+        var privateRaw: Data
         do {
             privateRaw = try AES.GCM.open(box, using: wrappingKey)
         } catch {
             throw KeyManagerError.decryptionFailed
+        }
+        defer {
+            zeroize(&privateRaw)
         }
         return SecureBytes(data: privateRaw)
     }
@@ -147,11 +154,14 @@ enum KeyManager {
 
     private static func wrapPrivateKeyRaw(_ privateRaw: Data, passphrase: String) throws -> Data {
         let salt = Data((0..<16).map { _ in UInt8.random(in: 0...255) })
-        let wrappingKeyData = try PBKDF2.deriveKey(
+        var wrappingKeyData = try PBKDF2.deriveKey(
             password: Data(passphrase.utf8),
             salt: salt,
             iterations: iterations
         )
+        defer {
+            zeroize(&wrappingKeyData)
+        }
         let wrappingKey = SymmetricKey(data: wrappingKeyData)
         let sealed = try AES.GCM.seal(privateRaw, using: wrappingKey)
         guard let combined = sealed.combined else {
@@ -249,5 +259,12 @@ enum KeyManager {
             kSecAttrAccount as String: tag,
         ]
         SecItemDelete(query as CFDictionary)
+    }
+
+    private static func zeroize(_ data: inout Data) {
+        data.withUnsafeMutableBytes { raw in
+            guard let base = raw.baseAddress else { return }
+            _ = memset_s(base, raw.count, 0, raw.count)
+        }
     }
 }

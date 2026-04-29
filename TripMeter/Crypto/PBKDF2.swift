@@ -1,4 +1,5 @@
 import CryptoKit
+import Darwin
 import Foundation
 
 /// PBKDF2-HMAC-SHA256 (RFC 2898).
@@ -25,6 +26,10 @@ enum PBKDF2 {
             )
             var t = Data(u)
             var uData = Data(u)
+            defer {
+                zeroize(&t)
+                zeroize(&uData)
+            }
 
             for _ in 1..<iterations {
                 u = try HMAC<SHA256>.authenticationCode(for: uData, using: key)
@@ -37,6 +42,13 @@ enum PBKDF2 {
         }
 
         return dk.prefix(keyLength)
+    }
+
+    private static func zeroize(_ data: inout Data) {
+        data.withUnsafeMutableBytes { raw in
+            guard let base = raw.baseAddress else { return }
+            _ = memset_s(base, raw.count, 0, raw.count)
+        }
     }
 }
 

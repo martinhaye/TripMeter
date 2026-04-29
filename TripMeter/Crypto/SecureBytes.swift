@@ -19,8 +19,4 @@ final class SecureBytes: @unchecked Sendable {
     func withUnsafeBytes<T>(_ body: (UnsafeRawBufferPointer) throws -> T) rethrows -> T {
         try buffer.withUnsafeBytes(body)
     }
-
-    var data: Data {
-        Data(buffer)
-    }
 }

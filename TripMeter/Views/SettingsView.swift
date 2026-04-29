@@ -307,6 +307,9 @@ private struct ChangePasswordSheet: View {
                 }
                 Section("Optional") {
                     TextField("New password hint", text: $newHint)
+                    Text("Hint is stored unencrypted on-device. Do not include parts of your password.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
             }
             .navigationTitle("Change Password")
@@ -323,8 +326,8 @@ private struct ChangePasswordSheet: View {
                             onError("New passwords do not match.")
                             return
                         }
-                        guard newPassphrase.count >= 8 else {
-                            onError("Use at least 8 characters.")
+                        guard newPassphrase.count >= 10 else {
+                            onError("Use at least 10 characters.")
                             return
                         }
                         isBusy = true
@@ -339,6 +342,10 @@ private struct ChangePasswordSheet: View {
                                     ? nil
                                     : newHint.trimmingCharacters(in: .whitespacesAndNewlines)
                             )
+                            oldPassphrase = ""
+                            newPassphrase = ""
+                            confirmPassphrase = ""
+                            newHint = ""
                             onDone("Password changed.")
                             dismiss()
                         } catch {

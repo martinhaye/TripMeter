@@ -34,6 +34,9 @@ struct OnboardingView: View {
 
                 Section("Optional") {
                     TextField("Passphrase hint (stored on device)", text: $hint)
+                    Text("Hint is stored unencrypted on-device. Do not include parts of your passphrase.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
 
                 if let errorMessage {
@@ -62,8 +65,8 @@ struct OnboardingView: View {
             errorMessage = "Passphrases do not match."
             return
         }
-        guard passphrase.count >= 8 else {
-            errorMessage = "Use at least 8 characters."
+        guard passphrase.count >= 10 else {
+            errorMessage = "Use at least 10 characters."
             return
         }
         isSaving = true

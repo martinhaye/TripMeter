@@ -97,6 +97,12 @@ private struct NoteDetailPage: View {
         }
         .padding()
         .onAppear(perform: load)
+        .onChange(of: session.isUnlocked) { _, isUnlocked in
+            if !isUnlocked {
+                text = ""
+                source = "typed"
+            }
+        }
         .alert("Delete this note?", isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {

@@ -1,4 +1,5 @@
 import CryptoKit
+import Darwin
 import Foundation
 
 enum NoteEncryptorError: Error, LocalizedError {
@@ -48,7 +49,11 @@ enum NoteEncryptor {
     static func decrypt(blob: Data, privateKey: SecureBytes) throws -> NotePayload {
         let (ephemeralPub, combined) = try decode(blob)
         let recipientPrivate = try privateKey.withUnsafeBytes { raw in
-            try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: Data(raw))
+            var rawData = Data(raw)
+            defer {
+                zeroize(&rawData)
+            }
+            return try Curve25519.KeyAgreement.PrivateKey(rawRepresentation: rawData)
         }
         let ephemeralPublic = try Curve25519.KeyAgreement.PublicKey(rawRepresentation: ephemeralPub)
         let shared = try recipientPrivate.sharedSecretFromKeyAgreement(with: ephemeralPublic)
@@ -77,5 +82,12 @@ enum NoteEncryptor {
         let ep = data.prefix(32)
         let rest = data.dropFirst(32)
         return (Data(ep), Data(rest))
+    }
+
+    private static func zeroize(_ data: inout Data) {
+        data.withUnsafeMutableBytes { raw in
+            guard let base = raw.baseAddress else { return }
+            _ = memset_s(base, raw.count, 0, raw.count)
+        }
     }
 }
