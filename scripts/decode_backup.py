@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Run with uv: uv run scripts/decode_backup.py /path/to/backup.json [--output decoded.json]
 # /// script
 # requires-python = ">=3.10"
 # dependencies = [
@@ -16,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import getpass
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -205,11 +207,7 @@ def print_summary(decoded: dict[str, Any]) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Decode Trip Meter backup JSON files.")
     parser.add_argument("backup_file", type=Path, help="Path to tripmeter-backup-*.json")
-    parser.add_argument(
-        "--password",
-        required=True,
-        help="Backup password used when the backup was created",
-    )
+    parser.add_argument("--password", help="Backup password used when the backup was created")
     parser.add_argument(
         "--output",
         type=Path,
@@ -226,9 +224,15 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    password = args.password
+    if not password:
+        password = getpass.getpass("Backup password: ")
+    if not password:
+        print("error: password cannot be empty")
+        return 2
 
     try:
-        decoded = decode_backup(args.backup_file, args.password)
+        decoded = decode_backup(args.backup_file, password)
         if args.summary_only:
             print_summary(decoded)
         else:

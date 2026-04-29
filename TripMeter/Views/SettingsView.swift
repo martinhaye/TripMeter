@@ -548,12 +548,23 @@ private enum BackupServiceError: LocalizedError {
 
 private struct BackupEnvelope: Codable {
     static let version = 1
+    static let decoderScriptURL = "https://github.com/martinhaye/TripMeter/blob/main/scripts/decode_backup.py"
 
     var version: Int
+    var decoderScriptURL: String?
     var createdAt: Date
     var publicKeyBase64: String
     var wrappedPrivateKeyJSONBase64: String
     var trips: [BackupTrip]
+
+    enum CodingKeys: String, CodingKey {
+        case version
+        case decoderScriptURL = "_decoderScriptURL"
+        case createdAt
+        case publicKeyBase64
+        case wrappedPrivateKeyJSONBase64
+        case trips
+    }
 
     static var defaultFilename: String {
         let f = DateFormatter()
@@ -625,6 +636,7 @@ private enum BackupService {
         }
         return BackupEnvelope(
             version: BackupEnvelope.version,
+            decoderScriptURL: BackupEnvelope.decoderScriptURL,
             createdAt: .now,
             publicKeyBase64: publicKeyRaw.base64EncodedString(),
             wrappedPrivateKeyJSONBase64: wrappedPrivateJSON.base64EncodedString(),
