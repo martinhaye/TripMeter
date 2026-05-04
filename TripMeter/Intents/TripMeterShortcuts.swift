@@ -7,10 +7,10 @@ struct TripMeterShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: AddNoteIntent(),
             phrases: [
-                "Add a note to \(.applicationName)",
-                "Log note in \(.applicationName)",
+                "Add a thought to \(.applicationName)",
+                "Log thought in \(.applicationName)",
             ],
-            shortTitle: "Add Trip Note",
+            shortTitle: "Add Trip Thought",
             systemImageName: "note.text.badge.plus"
         )
     }

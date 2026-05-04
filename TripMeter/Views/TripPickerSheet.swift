@@ -6,6 +6,8 @@ struct TripPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     @Binding var selectedTripName: String
+    /// When true, the capture screen keeps `selectedTripName` aligned with the calendar day (see `CaptureView`).
+    @Binding var usesRollingCalendarDay: Bool
     let todayName: String
 
     @State private var recentTrips: [Trip] = []
@@ -18,6 +20,7 @@ struct TripPickerSheet: View {
                 Section("Default") {
                     Button {
                         selectedTripName = todayName
+                        usesRollingCalendarDay = true
                         dismiss()
                     } label: {
                         HStack {
@@ -37,6 +40,7 @@ struct TripPickerSheet: View {
                         ForEach(recentTrips, id: \.id) { trip in
                             Button {
                                 selectedTripName = trip.name
+                                usesRollingCalendarDay = false
                                 dismiss()
                             } label: {
                                 HStack {
@@ -60,6 +64,7 @@ struct TripPickerSheet: View {
                             let name = newTripName.trimmingCharacters(in: .whitespacesAndNewlines)
                             guard !name.isEmpty else { return }
                             selectedTripName = name
+                            usesRollingCalendarDay = false
                             dismiss()
                         }
                     } else {

@@ -27,7 +27,7 @@ struct ReviewView: View {
         ContentUnavailableView(
             "Locked",
             systemImage: "lock.fill",
-            description: Text("Unlock to browse trips and read encrypted notes.")
+            description: Text("Unlock to browse trips and read encrypted thoughts.")
         )
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -42,11 +42,11 @@ struct ReviewView: View {
                 ContentUnavailableView(
                     "No trips yet",
                     systemImage: "map",
-                    description: Text("Capture notes to create trips.")
+                    description: Text("Capture thoughts to create trips.")
                 )
             } else {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Total notes: \(totalVisibleNotes)")
+                    Text("Total thoughts: \(totalVisibleNotes)")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal)
@@ -59,7 +59,7 @@ struct ReviewView: View {
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(trip.name).font(.headline)
-                                    Text("\(trip.notes.count) notes")
+                                    Text("\(trip.notes.count) thoughts")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -69,7 +69,7 @@ struct ReviewView: View {
                 }
             }
         }
-        .searchable(text: $search, prompt: "Trip name or note text")
+        .searchable(text: $search, prompt: "Trip name or thought text")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button("Lock") {

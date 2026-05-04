@@ -251,7 +251,7 @@ struct SettingsView: View {
             restorePassword = ""
             pendingRestoreEnvelope = nil
             showRestorePasswordPrompt = false
-            infoMessage = "Restored \(count) notes into the current key."
+            infoMessage = "Restored \(count) thoughts into the current key."
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -267,7 +267,7 @@ struct SettingsView: View {
             let trips = try modelContext.fetch(FetchDescriptor<Trip>())
             for trip in trips { modelContext.delete(trip) }
             try modelContext.save()
-            infoMessage = "All trips and notes deleted."
+            infoMessage = "All trips and thoughts deleted."
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -400,7 +400,7 @@ private struct DeleteAllSheet: View {
         NavigationStack {
             Form {
                 Section {
-                    Text("Type DELETE to confirm permanent deletion of all trips and notes.")
+                    Text("Type DELETE to confirm permanent deletion of all trips and thoughts.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                     TextField("Type DELETE", text: $confirmation)

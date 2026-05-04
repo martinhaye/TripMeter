@@ -17,7 +17,7 @@ enum NoteEncryptorError: Error, LocalizedError {
         case .decryptFailed:
             return "Decryption failed."
         case .invalidPayload:
-            return "Invalid note payload."
+            return "Invalid thought payload."
         }
     }
 }

@@ -38,7 +38,7 @@ struct NoteDetailView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
         }
-        .navigationTitle("Note")
+        .navigationTitle("Thought")
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: trip.notes.count) { _, _ in
             if currentNote == nil, let first = orderedNotes.first {
@@ -103,7 +103,7 @@ private struct NoteDetailPage: View {
                 source = "typed"
             }
         }
-        .alert("Delete this note?", isPresented: $showDeleteConfirm) {
+        .alert("Delete this thought?", isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {
                 deleteNote()

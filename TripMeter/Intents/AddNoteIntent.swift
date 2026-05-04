@@ -2,11 +2,11 @@ import AppIntents
 import SwiftData
 
 struct AddNoteIntent: AppIntent {
-    static var title: LocalizedStringResource = "Add Trip Note"
-    static var description = IntentDescription("Save an encrypted note in Trip Meter.")
+    static var title: LocalizedStringResource = "Add Trip Thought"
+    static var description = IntentDescription("Save an encrypted thought in Trip Meter.")
     static var openAppWhenRun: Bool = false
 
-    @Parameter(title: "Note text")
+    @Parameter(title: "Thought text")
     var text: String
 
     @Parameter(title: "Trip name", default: "")
@@ -24,6 +24,6 @@ struct AddNoteIntent: AppIntent {
             source: "siri",
             context: context
         )
-        return .result(dialog: "Note saved encrypted.")
+        return .result(dialog: "Thought saved encrypted.")
     }
 }

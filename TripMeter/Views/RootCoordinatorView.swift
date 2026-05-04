@@ -40,6 +40,7 @@ struct RootCoordinatorView: View {
             needsOnboarding = !KeyManager.hasKeys()
             evaluateBackupReminder()
             if SharedCaptureFlag.consumePending() {
+                selectedTab = 0
                 NotificationCenter.default.post(name: .tripMeterFocusCapture, object: nil)
             }
         }
@@ -53,6 +54,9 @@ struct RootCoordinatorView: View {
             case .active:
                 cancelBackgroundLock()
                 if SharedCaptureFlag.consumePending() {
+                    selectedTab = 0
+                    NotificationCenter.default.post(name: .tripMeterFocusCapture, object: nil)
+                } else if selectedTab == 0 {
                     NotificationCenter.default.post(name: .tripMeterFocusCapture, object: nil)
                 }
             default:
@@ -64,6 +68,7 @@ struct RootCoordinatorView: View {
         }
         .onOpenURL { url in
             guard url.scheme == AppConstants.captureURLScheme, url.host == "capture" else { return }
+            selectedTab = 0
             NotificationCenter.default.post(name: .tripMeterFocusCapture, object: nil)
         }
         .onReceive(NotificationCenter.default.publisher(for: .tripMeterDidUnlock)) { _ in

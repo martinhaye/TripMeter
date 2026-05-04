@@ -42,10 +42,22 @@ private struct NotePreviewLabel: View {
         return payload.text
     }
 
+    /// Collapses newlines so `lineLimit` shows more distinct segments in the preview.
+    private func previewDisplayText(_ raw: String) -> String {
+        raw
+            .split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " / ")
+    }
+
     var body: some View {
         Group {
             if let text = decrypted {
-                Text(text.isEmpty ? "(empty note)" : text)
+                let shown = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    ? "(empty thought)"
+                    : previewDisplayText(text)
+                Text(shown)
                     .lineLimit(3)
                     .multilineTextAlignment(.leading)
             } else {

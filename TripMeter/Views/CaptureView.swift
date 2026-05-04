@@ -4,10 +4,13 @@ import SwiftUI
 struct CaptureView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppSession.self) private var session
+    @Environment(\.scenePhase) private var scenePhase
     @FocusState private var noteFocused: Bool
 
     @State private var noteText = ""
     @State private var selectedTripName: String = NoteCaptureService.todayTripName()
+    /// When true, trip name follows the local calendar day (avoids stale `yyyy-MM-dd` after midnight while this tab stays alive).
+    @State private var usesRollingCalendarDay = true
     @State private var showTripPicker = false
     @State private var saveError: String?
     @State private var didSaveFlash = false
@@ -45,7 +48,7 @@ struct CaptureView: View {
             Spacer()
         }
         .padding()
-        .navigationTitle("Capture")
+        .navigationTitle("TripMeter")
         .toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Button {
@@ -54,7 +57,7 @@ struct CaptureView: View {
                     Label(selectedTripName, systemImage: "map")
                         .labelStyle(.titleAndIcon)
                 }
-                .accessibilityHint("Choose trip for this note")
+                .accessibilityHint("Choose trip for this thought")
 
                 Button("Save") {
                     saveNote()
@@ -64,10 +67,18 @@ struct CaptureView: View {
             }
         }
         .onAppear {
+            refreshRollingTripNameIfNeeded()
             if selectedTripName.isEmpty {
                 selectedTripName = todayName
             }
-            noteFocused = true
+            DispatchQueue.main.async {
+                noteFocused = true
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                refreshRollingTripNameIfNeeded()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .tripMeterFocusCapture)) { _ in
             noteFocused = true
@@ -98,10 +109,22 @@ struct CaptureView: View {
             .background(.ultraThinMaterial)
         }
         .sheet(isPresented: $showTripPicker) {
-            TripPickerSheet(selectedTripName: $selectedTripName, todayName: todayName)
+            TripPickerSheet(
+                selectedTripName: $selectedTripName,
+                usesRollingCalendarDay: $usesRollingCalendarDay,
+                todayName: todayName
+            )
         }
         .sheet(isPresented: $showUnlock) {
             UnlockView()
+        }
+    }
+
+    private func refreshRollingTripNameIfNeeded() {
+        guard usesRollingCalendarDay else { return }
+        let latest = NoteCaptureService.todayTripName()
+        if selectedTripName != latest {
+            selectedTripName = latest
         }
     }
 
@@ -117,7 +140,9 @@ struct CaptureView: View {
             )
             noteText = ""
             didSaveFlash = true
-            noteFocused = false
+            DispatchQueue.main.async {
+                noteFocused = true
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 didSaveFlash = false
             }

@@ -13,7 +13,7 @@ struct OnboardingView: View {
             Form {
                 Section {
                     Text(
-                        "Trip Meter encrypts your notes on this device. Your passphrase wraps the private key. If you lose it, your notes cannot be recovered."
+                        "Trip Meter encrypts your thoughts on this device. Your passphrase wraps the private key. If you lose it, your thoughts cannot be recovered."
                     )
                     .font(.footnote)
                     .foregroundStyle(.secondary)
