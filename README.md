@@ -58,6 +58,8 @@ When Review is unlocked, **Settings** includes a **Data & Security** section:
 
 In **Review**, each thought in a trip’s list shows a short preview (a few lines). Newlines in the stored text are replaced by ` / ` so more segments fit in the preview.
 
+In a thought detail screen, **Save** is enabled only when the text has changed. After a successful save, it becomes disabled again until you edit more. If you go back to the thoughts list with unsaved edits, the app prompts you to choose **Discard** or **Save**.
+
 ### Backup format (v1)
 
 Backup JSON includes:

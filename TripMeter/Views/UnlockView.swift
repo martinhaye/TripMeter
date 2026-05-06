@@ -25,6 +25,7 @@ struct UnlockView: View {
                         text: $passphrase,
                         isBusy: isBusy
                     )
+                    .listRowInsets(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8))
                 }
 
                 if let errorMessage {
@@ -78,10 +79,10 @@ struct TelephonePasscodeEntry: View {
     var isBusy: Bool = false
 
     private let keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"]
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             Text(title)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
@@ -96,13 +97,20 @@ struct TelephonePasscodeEntry: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10))
             }
 
-            LazyVGrid(columns: columns, spacing: 10) {
+            LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(keys, id: \.self) { key in
-                    Button(key) {
+                    Button {
                         text.append(key)
+                    } label: {
+                        Text(key)
+                            .font(.title2.weight(.semibold))
+                            .foregroundStyle(.primary)
+                            .frame(maxWidth: .infinity, minHeight: 72)
+                            .background(Color(.secondarySystemBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .contentShape(Rectangle())
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
+                    .buttonStyle(.plain)
                     .disabled(isBusy)
                 }
             }
