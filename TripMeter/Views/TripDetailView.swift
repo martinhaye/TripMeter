@@ -26,6 +26,20 @@ struct TripDetailView: View {
         }
         .navigationTitle(trip.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    NotificationCenter.default.post(
+                        name: .tripMeterOpenCapture,
+                        object: nil,
+                        userInfo: [AppConstants.captureTripNameUserInfoKey: trip.name]
+                    )
+                } label: {
+                    Label("Add", systemImage: "plus")
+                }
+                .accessibilityHint("Add a thought to this trip")
+            }
+        }
     }
 }
 

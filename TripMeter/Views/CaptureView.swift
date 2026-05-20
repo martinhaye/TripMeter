@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import UIKit
 
 struct CaptureView: View {
     @Environment(\.modelContext) private var modelContext
@@ -15,6 +16,9 @@ struct CaptureView: View {
     @State private var saveError: String?
     @State private var didSaveFlash = false
     @State private var showUnlock = false
+    @State private var idleAutoSaveWorkItem: DispatchWorkItem?
+
+    private static let autoSaveIdleInterval: TimeInterval = 120
 
     private var todayName: String {
         NoteCaptureService.todayTripName()
@@ -80,8 +84,17 @@ struct CaptureView: View {
                 refreshRollingTripNameIfNeeded()
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .tripMeterFocusCapture)) { _ in
-            noteFocused = true
+        .onChange(of: noteText) { _, _ in
+            rescheduleIdleAutoSave()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.protectedDataWillBecomeUnavailableNotification)) { _ in
+            autoSaveIfNeeded()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .tripMeterFocusCapture)) { notification in
+            applyCaptureFocus(from: notification)
+        }
+        .onDisappear {
+            cancelIdleAutoSave()
         }
         .safeAreaInset(edge: .bottom) {
             HStack(spacing: 12) {
@@ -120,12 +133,43 @@ struct CaptureView: View {
         }
     }
 
+    private func applyCaptureFocus(from notification: Notification) {
+        if let tripName = notification.userInfo?[AppConstants.captureTripNameUserInfoKey] as? String,
+           !tripName.isEmpty {
+            selectedTripName = tripName
+            usesRollingCalendarDay = false
+        }
+        DispatchQueue.main.async {
+            noteFocused = true
+        }
+    }
+
     private func refreshRollingTripNameIfNeeded() {
         guard usesRollingCalendarDay else { return }
         let latest = NoteCaptureService.todayTripName()
         if selectedTripName != latest {
             selectedTripName = latest
         }
+    }
+
+    private func rescheduleIdleAutoSave() {
+        idleAutoSaveWorkItem?.cancel()
+        guard canSave else { return }
+        let work = DispatchWorkItem {
+            autoSaveIfNeeded()
+        }
+        idleAutoSaveWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.autoSaveIdleInterval, execute: work)
+    }
+
+    private func cancelIdleAutoSave() {
+        idleAutoSaveWorkItem?.cancel()
+        idleAutoSaveWorkItem = nil
+    }
+
+    private func autoSaveIfNeeded() {
+        guard canSave else { return }
+        saveNote()
     }
 
     private func saveNote() {
@@ -139,6 +183,7 @@ struct CaptureView: View {
                 context: modelContext
             )
             noteText = ""
+            cancelIdleAutoSave()
             didSaveFlash = true
             DispatchQueue.main.async {
                 noteFocused = true

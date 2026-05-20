@@ -71,6 +71,16 @@ struct RootCoordinatorView: View {
             selectedTab = 0
             NotificationCenter.default.post(name: .tripMeterFocusCapture, object: nil)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .tripMeterOpenCapture)) { notification in
+            selectedTab = 0
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(
+                    name: .tripMeterFocusCapture,
+                    object: nil,
+                    userInfo: notification.userInfo
+                )
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .tripMeterDidUnlock)) { _ in
             selectedTab = 1
         }
