@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import UIKit
 
 struct NoteDetailView: View {
     let trip: Trip
@@ -13,7 +14,12 @@ struct NoteDetailView: View {
     }
 
     private var orderedNotes: [Note] {
-        trip.notes.sorted { $0.createdAt < $1.createdAt }
+        trip.notes.sorted { lhs, rhs in
+            if lhs.createdAt == rhs.createdAt {
+                return lhs.id.uuidString < rhs.id.uuidString
+            }
+            return lhs.createdAt < rhs.createdAt
+        }
     }
 
     private var currentNote: Note? {
@@ -76,7 +82,7 @@ private struct NoteDetailPage: View {
             if let loadError {
                 Text(loadError).foregroundStyle(.red)
             }
-            TextEditor(text: $text)
+            VerticallyLockedTextEditor(text: $text)
                 .padding(8)
                 .background(Color(.secondarySystemBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -198,6 +204,45 @@ private struct NoteDetailPage: View {
             showLeaveConfirm = true
         } else {
             dismiss()
+        }
+    }
+}
+
+// MARK: - Text editor that leaves horizontal swipes to the page TabView
+
+private struct VerticallyLockedTextEditor: UIViewRepresentable {
+    @Binding var text: String
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(text: $text)
+    }
+
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.delegate = context.coordinator
+        textView.isDirectionalLockEnabled = true
+        textView.font = UIFont.preferredFont(forTextStyle: .body)
+        textView.backgroundColor = .clear
+        textView.textContainerInset = UIEdgeInsets(top: 8, left: 5, bottom: 8, right: 5)
+        textView.text = text
+        return textView
+    }
+
+    func updateUIView(_ uiView: UITextView, context: Context) {
+        if uiView.text != text {
+            uiView.text = text
+        }
+    }
+
+    final class Coordinator: NSObject, UITextViewDelegate {
+        @Binding var text: String
+
+        init(text: Binding<String>) {
+            _text = text
+        }
+
+        func textViewDidChange(_ textView: UITextView) {
+            text = textView.text
         }
     }
 }

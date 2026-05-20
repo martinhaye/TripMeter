@@ -2,6 +2,53 @@ import SwiftData
 import SwiftUI
 
 struct TripDetailView: View {
+    let trips: [Trip]
+    @State private var selectedTripID: PersistentIdentifier
+
+    init(trips: [Trip], trip: Trip) {
+        self.trips = trips
+        _selectedTripID = State(initialValue: trip.persistentModelID)
+    }
+
+    private var currentTrip: Trip? {
+        trips.first { $0.persistentModelID == selectedTripID }
+    }
+
+    var body: some View {
+        TabView(selection: $selectedTripID) {
+            ForEach(trips, id: \.persistentModelID) { trip in
+                TripNotesList(trip: trip)
+                    .tag(trip.persistentModelID)
+            }
+        }
+        .tabViewStyle(.page(indexDisplayMode: .never))
+        .navigationTitle(currentTrip?.name ?? "")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    guard let tripName = currentTrip?.name else { return }
+                    NotificationCenter.default.post(
+                        name: .tripMeterOpenCapture,
+                        object: nil,
+                        userInfo: [AppConstants.captureTripNameUserInfoKey: tripName]
+                    )
+                } label: {
+                    Label("Add", systemImage: "plus")
+                }
+                .accessibilityHint("Add a thought to this trip")
+            }
+        }
+        .onChange(of: trips.map(\.persistentModelID)) { _, ids in
+            guard !ids.contains(selectedTripID) else { return }
+            selectedTripID = ids.first ?? selectedTripID
+        }
+    }
+}
+
+// MARK: - Thought list for one trip
+
+private struct TripNotesList: View {
     @Bindable var trip: Trip
     @Environment(AppSession.self) private var session
 
@@ -24,22 +71,7 @@ struct TripDetailView: View {
                 }
             }
         }
-        .navigationTitle(trip.name)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    NotificationCenter.default.post(
-                        name: .tripMeterOpenCapture,
-                        object: nil,
-                        userInfo: [AppConstants.captureTripNameUserInfoKey: trip.name]
-                    )
-                } label: {
-                    Label("Add", systemImage: "plus")
-                }
-                .accessibilityHint("Add a thought to this trip")
-            }
-        }
+        .listStyle(.plain)
     }
 }
 

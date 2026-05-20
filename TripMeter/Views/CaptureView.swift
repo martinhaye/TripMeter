@@ -17,8 +17,14 @@ struct CaptureView: View {
     @State private var didSaveFlash = false
     @State private var showUnlock = false
     @State private var idleAutoSaveWorkItem: DispatchWorkItem?
+    /// Forces TextEditor recreation so cached glyphs cannot flash after lock/unlock.
+    @State private var editorIdentity = UUID()
 
     private static let autoSaveIdleInterval: TimeInterval = 120
+
+    private var isCaptureVisible: Bool {
+        scenePhase == .active
+    }
 
     private var todayName: String {
         NoteCaptureService.todayTripName()
@@ -30,12 +36,23 @@ struct CaptureView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            TextEditor(text: $noteText)
-                .focused($noteFocused)
-                .frame(minHeight: 200)
-                .padding(8)
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.secondarySystemBackground))
+
+                TextEditor(text: $noteText)
+                    .focused($noteFocused)
+                    .id(editorIdentity)
+                    .padding(8)
+                    .opacity(isCaptureVisible ? 1 : 0)
+
+                if !isCaptureVisible {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.secondarySystemBackground))
+                }
+            }
+            .frame(minHeight: 200)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
 
             if didSaveFlash {
                 Text("Saved (encrypted)")
@@ -80,15 +97,20 @@ struct CaptureView: View {
             }
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active {
+            switch phase {
+            case .active:
                 refreshRollingTripNameIfNeeded()
+            case .inactive:
+                noteFocused = false
+            default:
+                break
             }
         }
         .onChange(of: noteText) { _, _ in
             rescheduleIdleAutoSave()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.protectedDataWillBecomeUnavailableNotification)) { _ in
-            autoSaveIfNeeded()
+            autoSaveOnDeviceLock()
         }
         .onReceive(NotificationCenter.default.publisher(for: .tripMeterFocusCapture)) { notification in
             applyCaptureFocus(from: notification)
@@ -172,27 +194,55 @@ struct CaptureView: View {
         saveNote()
     }
 
+    private func autoSaveOnDeviceLock() {
+        let textToSave = noteText
+        clearCaptureEditor()
+        guard !textToSave.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        performSave(text: textToSave, showConfirmation: false)
+    }
+
+    private func clearCaptureEditor() {
+        noteText = ""
+        editorIdentity = UUID()
+        cancelIdleAutoSave()
+    }
+
     private func saveNote() {
+        performSave(text: noteText, showConfirmation: true)
+    }
+
+    private func performSave(text: String, showConfirmation: Bool) {
         saveError = nil
         didSaveFlash = false
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        if showConfirmation {
+            clearCaptureEditor()
+        }
+
         do {
             try NoteCaptureService.saveNote(
-                text: noteText,
+                text: trimmed,
                 tripName: selectedTripName,
                 source: "typed",
                 context: modelContext
             )
-            noteText = ""
-            cancelIdleAutoSave()
-            didSaveFlash = true
-            DispatchQueue.main.async {
-                noteFocused = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                didSaveFlash = false
+            if showConfirmation {
+                didSaveFlash = true
+                DispatchQueue.main.async {
+                    noteFocused = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    didSaveFlash = false
+                }
             }
         } catch {
             saveError = error.localizedDescription
+            if showConfirmation {
+                noteText = text
+                editorIdentity = UUID()
+            }
         }
     }
 }

@@ -55,7 +55,7 @@ struct ReviewView: View {
                     List {
                         ForEach(filteredTrips, id: \.id) { trip in
                             NavigationLink {
-                                TripDetailView(trip: trip)
+                                TripDetailView(trips: filteredTrips, trip: trip)
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(trip.name).font(.headline)

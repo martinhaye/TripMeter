@@ -53,11 +53,11 @@ When Review is unlocked, **Settings** includes a **Data & Security** section:
 
 - The capture screen navigation title is **TripMeter**. The tab label remains **Capture**.
 - The editor refocuses when the app becomes active on the Capture tab, when opening from the widget/URL/pending flag (which also selects the Capture tab), and after a successful save so you can keep typing without an extra tap.
-- Capture auto-saves entered text after **2 minutes** without typing, or when the device is **locked**—whichever comes first—using the same save path as the **Save** button.
+- Capture auto-saves entered text after **2 minutes** without typing, or when the device is **locked**—whichever comes first—using the same save path as the **Save** button. While the app is inactive or in the background, the capture editor is obscured so lock-screen snapshots and unlock transitions never flash draft text.
 - Capture includes persistent bottom controls for **Hide Keyboard** and **Unlock** (when locked), so unlock is always reachable.
 - Successful unlock switches to the **Review** tab.
 
-In **Review**, each thought in a trip’s list shows a short preview (a few lines). Newlines in the stored text are replaced by ` / ` so more segments fit in the preview. A trip’s detail screen has an **Add** button that opens **Capture** with that trip selected.
+In **Review**, each thought in a trip’s list shows a short preview (a few lines). Newlines in the stored text are replaced by ` / ` so more segments fit in the preview. A trip’s detail screen has an **Add** button that opens **Capture** with that trip selected. Swipe left or right on a trip’s thought list to move between trips (within the current search results), and swipe left or right on a thought to move between thoughts in that trip.
 
 In a thought detail screen, **Save** is enabled only when the text has changed. After a successful save, it becomes disabled again until you edit more. If you go back to the thoughts list with unsaved edits, the app prompts you to choose **Discard** or **Save**.
 

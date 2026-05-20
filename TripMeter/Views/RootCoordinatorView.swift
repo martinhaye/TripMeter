@@ -85,7 +85,7 @@ struct RootCoordinatorView: View {
             selectedTab = 1
         }
         .overlay {
-            if scenePhase == .inactive {
+            if scenePhase != .active {
                 Color(.systemBackground)
                     .ignoresSafeArea()
             }
