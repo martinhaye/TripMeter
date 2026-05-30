@@ -39,6 +39,8 @@
 		BF0000000000000000000022 /* OpenCaptureIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000022 /* OpenCaptureIntent.swift */; };
 		BF0000000000000000000023 /* WidgetSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000023 /* WidgetSupport.swift */; };
 		BF0000000000000000000024 /* TripMeterWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000025 /* TripMeterWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		BF0000000000000000000026 /* HapticFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000028 /* HapticFeedback.swift */; };
+		BF0000000000000000000027 /* LuckyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000027 /* LuckyView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,6 +104,8 @@
 		FR0000000000000000000023 /* WidgetSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSupport.swift; sourceTree = "<group>"; };
 		FR0000000000000000000024 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		FR0000000000000000000025 /* TripMeterWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TripMeterWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FR0000000000000000000027 /* LuckyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LuckyView.swift; sourceTree = "<group>"; };
+		FR0000000000000000000028 /* HapticFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticFeedback.swift; sourceTree = "<group>"; };
 		FR0000000000000000000026 /* TripMeterWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TripMeterWidget.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -216,6 +220,7 @@
 				FR000000000000000000000D /* NoteCaptureService.swift */,
 				FR000000000000000000000E /* UserSettings.swift */,
 				FR000000000000000000000F /* SharedCaptureFlag.swift */,
+				FR0000000000000000000028 /* HapticFeedback.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -232,6 +237,7 @@
 				FR0000000000000000000016 /* NoteDetailView.swift */,
 				FR0000000000000000000017 /* SettingsView.swift */,
 				FR0000000000000000000018 /* RootCoordinatorView.swift */,
+				FR0000000000000000000027 /* LuckyView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -379,6 +385,8 @@
 				BF0000000000000000000018 /* RootCoordinatorView.swift in Sources */,
 				BF0000000000000000000019 /* AddNoteIntent.swift in Sources */,
 				BF000000000000000000001A /* TripMeterShortcuts.swift in Sources */,
+				BF0000000000000000000026 /* HapticFeedback.swift in Sources */,
+				BF0000000000000000000027 /* LuckyView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

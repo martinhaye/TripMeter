@@ -17,6 +17,18 @@ final class AppSession {
         backupReminderShownForCurrentUnlock = false
     }
 
+    func unlockAsync(
+        passphrase: String,
+        progress: (@Sendable (Double) -> Void)? = nil
+    ) async throws {
+        let key = try await Task.detached(priority: .userInitiated) {
+            try KeyManager.unwrapPrivateKey(passphrase: passphrase, progress: progress)
+        }.value
+        unlockedPrivateKey = key
+        failedUnlockAttempts = 0
+        backupReminderShownForCurrentUnlock = false
+    }
+
     func lock() {
         unlockedPrivateKey = nil
         backupReminderShownForCurrentUnlock = false

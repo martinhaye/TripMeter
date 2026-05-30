@@ -8,6 +8,10 @@ struct NoteDetailView: View {
     @Environment(AppSession.self) private var session
     @Environment(\.dismiss) private var dismiss
 
+    @State private var isCurrentPageDirty = false
+    @State private var saveCurrentPage: (() -> Bool)?
+    @State private var showLeaveConfirm = false
+
     init(trip: Trip, note: Note) {
         self.trip = trip
         _selectedNoteID = State(initialValue: note.persistentModelID)
@@ -38,8 +42,17 @@ struct NoteDetailView: View {
 
             TabView(selection: $selectedNoteID) {
                 ForEach(orderedNotes, id: \.persistentModelID) { note in
-                    NoteDetailPage(note: note)
-                        .tag(note.persistentModelID)
+                    NoteDetailPage(
+                        note: note,
+                        isActive: note.persistentModelID == selectedNoteID,
+                        isDirty: $isCurrentPageDirty,
+                        registerSaveHandler: { handler in
+                            if note.persistentModelID == selectedNoteID {
+                                saveCurrentPage = handler
+                            }
+                        }
+                    )
+                    .tag(note.persistentModelID)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -47,12 +60,46 @@ struct NoteDetailView: View {
         .navigationTitle("Thought")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    attemptDismiss()
+                } label: {
+                    Label("Back", systemImage: "chevron.left")
+                }
+            }
+        }
+        .onChange(of: selectedNoteID) { _, _ in
+            isCurrentPageDirty = false
+            saveCurrentPage = nil
+        }
         .onChange(of: trip.notes.count) { _, _ in
             if currentNote == nil, let first = orderedNotes.first {
                 selectedNoteID = first.persistentModelID
             } else if orderedNotes.isEmpty {
                 dismiss()
             }
+        }
+        .alert("You have unsaved changes", isPresented: $showLeaveConfirm) {
+            Button("Discard", role: .destructive) {
+                dismiss()
+            }
+            Button("Save") {
+                if saveCurrentPage?() == true {
+                    dismiss()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Save before returning to the list of thoughts?")
+        }
+    }
+
+    private func attemptDismiss() {
+        if isCurrentPageDirty {
+            showLeaveConfirm = true
+        } else {
+            dismiss()
         }
     }
 }
@@ -61,9 +108,12 @@ struct NoteDetailView: View {
 
 private struct NoteDetailPage: View {
     @Bindable var note: Note
+    let isActive: Bool
+    @Binding var isDirty: Bool
+    let registerSaveHandler: (@escaping () -> Bool) -> Void
+
     @Environment(AppSession.self) private var session
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.dismiss) private var dismiss
 
     @State private var text = ""
     @State private var originalText = ""
@@ -71,9 +121,8 @@ private struct NoteDetailPage: View {
     @State private var loadError: String?
     @State private var saveError: String?
     @State private var showDeleteConfirm = false
-    @State private var showLeaveConfirm = false
 
-    private var isDirty: Bool {
+    private var pageIsDirty: Bool {
         text != originalText
     }
 
@@ -108,24 +157,29 @@ private struct NoteDetailPage: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(session.unlockedPrivateKey == nil || !isDirty)
+                .disabled(session.unlockedPrivateKey == nil || !pageIsDirty)
             }
         }
         .padding()
         .onAppear(perform: load)
+        .onChange(of: isActive) { _, active in
+            if active {
+                syncDirtyState()
+                registerSaveHandler { save() }
+            }
+        }
+        .onChange(of: text) { _, _ in
+            if isActive {
+                syncDirtyState()
+            }
+        }
         .onChange(of: session.isUnlocked) { _, isUnlocked in
             if !isUnlocked {
                 text = ""
                 originalText = ""
                 source = "typed"
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    attemptDismiss()
-                } label: {
-                    Label("Back", systemImage: "chevron.left")
+                if isActive {
+                    isDirty = false
                 }
             }
         }
@@ -137,19 +191,10 @@ private struct NoteDetailPage: View {
         } message: {
             Text("This cannot be undone.")
         }
-        .alert("You have unsaved changes", isPresented: $showLeaveConfirm) {
-            Button("Discard", role: .destructive) {
-                dismiss()
-            }
-            Button("Save") {
-                if save() {
-                    dismiss()
-                }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Save before returning to the list of thoughts?")
-        }
+    }
+
+    private func syncDirtyState() {
+        isDirty = pageIsDirty
     }
 
     private func load() {
@@ -163,6 +208,10 @@ private struct NoteDetailPage: View {
             text = payload.text
             originalText = payload.text
             source = payload.source
+            if isActive {
+                syncDirtyState()
+                registerSaveHandler { save() }
+            }
         } catch {
             loadError = error.localizedDescription
         }
@@ -182,6 +231,9 @@ private struct NoteDetailPage: View {
             note.encryptedPayload = blob
             try modelContext.save()
             originalText = text
+            if isActive {
+                isDirty = false
+            }
             return true
         } catch {
             saveError = error.localizedDescription
@@ -196,14 +248,6 @@ private struct NoteDetailPage: View {
             try modelContext.save()
         } catch {
             saveError = error.localizedDescription
-        }
-    }
-
-    private func attemptDismiss() {
-        if isDirty {
-            showLeaveConfirm = true
-        } else {
-            dismiss()
         }
     }
 }

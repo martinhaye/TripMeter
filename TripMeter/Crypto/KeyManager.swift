@@ -56,6 +56,20 @@ enum KeyManager {
         return try unwrapPrivateKeyFromJSON(passphrase: passphrase, wrappedJSON: wrappedJSON)
     }
 
+    static func unwrapPrivateKey(
+        passphrase: String,
+        progress: (@Sendable (Double) -> Void)? = nil
+    ) throws -> SecureBytes {
+        guard let wrappedJSON = loadWrappedPrivate() else {
+            throw KeyManagerError.notConfigured
+        }
+        return try unwrapPrivateKeyFromJSON(
+            passphrase: passphrase,
+            wrappedJSON: wrappedJSON,
+            progress: progress
+        )
+    }
+
     static func unwrapPrivateKey(passphrase: String, wrappedJSON: Data) throws -> SecureBytes {
         return try unwrapPrivateKeyFromJSON(passphrase: passphrase, wrappedJSON: wrappedJSON)
     }
@@ -94,7 +108,11 @@ enum KeyManager {
         try saveWrappedPrivate(data)
     }
 
-    private static func unwrapPrivateKeyFromJSON(passphrase: String, wrappedJSON: Data) throws -> SecureBytes {
+    private static func unwrapPrivateKeyFromJSON(
+        passphrase: String,
+        wrappedJSON: Data,
+        progress: (@Sendable (Double) -> Void)? = nil
+    ) throws -> SecureBytes {
         let wrapped = try JSONDecoder().decode(WrappedPrivateKey.self, from: wrappedJSON)
         guard let salt = Data(base64Encoded: wrapped.salt),
               let combined = Data(base64Encoded: wrapped.wrappedPrivateKey)
@@ -105,7 +123,10 @@ enum KeyManager {
         var wrappingKeyData = try PBKDF2.deriveKey(
             password: Data(passphrase.utf8),
             salt: salt,
-            iterations: iterations
+            iterations: iterations,
+            progress: { fraction in
+                progress?(fraction * 0.92)
+            }
         )
         defer {
             zeroize(&wrappingKeyData)
@@ -121,6 +142,7 @@ enum KeyManager {
         defer {
             zeroize(&privateRaw)
         }
+        progress?(1.0)
         return SecureBytes(data: privateRaw)
     }
 

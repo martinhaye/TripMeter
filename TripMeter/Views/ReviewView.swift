@@ -8,6 +8,7 @@ struct ReviewView: View {
     @Query(sort: \Trip.createdAt, order: .reverse) private var trips: [Trip]
     @State private var search = ""
     @State private var showUnlock = false
+    @State private var showLucky = false
 
     var body: some View {
         Group {
@@ -52,6 +53,17 @@ struct ReviewView: View {
                         .padding(.horizontal)
                         .padding(.top, 4)
 
+                    Button("Feeling Lucky Punk?") {
+                        showLucky = true
+                    }
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .padding(.horizontal)
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .padding(.horizontal)
+
                     List {
                         ForEach(filteredTrips, id: \.id) { trip in
                             NavigationLink {
@@ -70,6 +82,11 @@ struct ReviewView: View {
             }
         }
         .searchable(text: $search, prompt: "Trip name or thought text")
+        .navigationDestination(isPresented: $showLucky) {
+            if let key = session.unlockedPrivateKey {
+                LuckyView(notes: allVisibleNotes, privateKey: key)
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button("Lock") {
@@ -99,5 +116,9 @@ struct ReviewView: View {
         filteredTrips.reduce(into: 0) { total, trip in
             total += trip.notes.count
         }
+    }
+
+    private var allVisibleNotes: [Note] {
+        filteredTrips.flatMap(\.notes)
     }
 }

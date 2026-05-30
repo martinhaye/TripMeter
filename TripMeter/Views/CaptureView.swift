@@ -80,7 +80,7 @@ struct CaptureView: View {
                 }
                 .accessibilityHint("Choose trip for this thought")
 
-                Button("Save") {
+                Button("Another") {
                     saveNote()
                 }
                 .fontWeight(.semibold)
@@ -228,6 +228,7 @@ struct CaptureView: View {
                 source: "typed",
                 context: modelContext
             )
+            HapticFeedback.savePulse()
             if showConfirmation {
                 didSaveFlash = true
                 DispatchQueue.main.async {

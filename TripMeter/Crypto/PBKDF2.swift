@@ -8,7 +8,8 @@ enum PBKDF2 {
         password: Data,
         salt: Data,
         iterations: Int,
-        keyLength: Int = 32
+        keyLength: Int = 32,
+        progress: (@Sendable (Double) -> Void)? = nil
     ) throws -> Data {
         precondition(iterations > 0)
         precondition(keyLength > 0)
@@ -31,12 +32,18 @@ enum PBKDF2 {
                 zeroize(&uData)
             }
 
-            for _ in 1..<iterations {
+            for iteration in 1..<iterations {
                 u = try HMAC<SHA256>.authenticationCode(for: uData, using: key)
                 uData = Data(u)
                 for j in 0..<t.count {
                     t[j] ^= uData[j]
                 }
+                if let progress, iteration % 6_000 == 0 {
+                    progress(Double(iteration) / Double(iterations))
+                }
+            }
+            if let progress {
+                progress(1.0)
             }
             dk.append(t)
         }
