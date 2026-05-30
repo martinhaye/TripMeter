@@ -2,10 +2,21 @@ import CoreHaptics
 import UIKit
 
 enum HapticFeedback {
+    private static let softImpact: UIImpactFeedbackGenerator = {
+        let generator = UIImpactFeedbackGenerator(style: .soft)
+        generator.prepare()
+        return generator
+    }()
+
     /// Soft pulse: quick rise, gentle fade. Falls back to impact on unsupported hardware.
     static func savePulse() {
+        guard UIApplication.shared.applicationState == .active else {
+            savePulseImmediate()
+            return
+        }
+
         guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else {
-            UIImpactFeedbackGenerator(style: .soft).impactOccurred(intensity: 0.85)
+            savePulseImmediate()
             return
         }
 
@@ -38,8 +49,14 @@ enum HapticFeedback {
                 engine.stop(completionHandler: nil)
             }
         } catch {
-            UIImpactFeedbackGenerator(style: .soft).impactOccurred(intensity: 0.85)
+            savePulseImmediate()
         }
+    }
+
+    /// Synchronous UIKit impact — works in the brief window before the app backgrounds.
+    static func savePulseImmediate() {
+        softImpact.prepare()
+        softImpact.impactOccurred(intensity: 0.85)
     }
 
     static func keyTap() {

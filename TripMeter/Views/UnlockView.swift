@@ -28,6 +28,7 @@ struct UnlockView: View {
                             isBusy: isBusy
                         )
                         .listRowInsets(EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8))
+                        .listRowBackground(Color.clear)
                     }
 
                     if let errorMessage {
@@ -114,8 +115,6 @@ struct TelephonePasscodeEntry: View {
     private let keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"]
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
 
-    @State private var highlightedKey: String?
-    @State private var highlightOpacity: Double = 0
     @State private var revealLastDigit = false
     @State private var revealTask: Task<Void, Never>?
 
@@ -147,25 +146,9 @@ struct TelephonePasscodeEntry: View {
 
             LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(keys, id: \.self) { key in
-                    Button {
+                    PasscodeKeyView(label: key, isBusy: isBusy) {
                         appendKey(key)
-                    } label: {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(.secondarySystemBackground))
-                            if highlightedKey == key {
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.accentColor.opacity(highlightOpacity))
-                            }
-                            Text(key)
-                                .font(.title2.weight(.semibold))
-                                .foregroundStyle(.primary)
-                        }
-                        .frame(maxWidth: .infinity, minHeight: 72)
-                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
-                    .disabled(isBusy)
                 }
             }
 
@@ -192,21 +175,7 @@ struct TelephonePasscodeEntry: View {
     private func appendKey(_ key: String) {
         text.append(key)
         HapticFeedback.keyTap()
-        flashKeyHighlight(key)
         flashLastDigit()
-    }
-
-    private func flashKeyHighlight(_ key: String) {
-        highlightedKey = key
-        highlightOpacity = 0.65
-        withAnimation(.easeOut(duration: 0.4)) {
-            highlightOpacity = 0
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
-            if highlightedKey == key {
-                highlightedKey = nil
-            }
-        }
     }
 
     private func flashLastDigit() {
@@ -219,6 +188,53 @@ struct TelephonePasscodeEntry: View {
                 withAnimation(.easeOut(duration: 0.2)) {
                     revealLastDigit = false
                 }
+            }
+        }
+    }
+}
+
+// MARK: - Key cell (tap gesture avoids Form swallowing Button styles)
+
+private struct PasscodeKeyView: View {
+    let label: String
+    let isBusy: Bool
+    let onTap: () -> Void
+
+    @State private var highlightAmount: Double = 0
+
+    var body: some View {
+        Text(label)
+            .font(.title2.weight(.semibold))
+            .foregroundStyle(.primary)
+            .frame(maxWidth: .infinity, minHeight: 72)
+            .background {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.secondarySystemBackground))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.blue.opacity(0.55 * highlightAmount))
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .contentShape(RoundedRectangle(cornerRadius: 12))
+            .opacity(isBusy ? 0.45 : 1)
+            .allowsHitTesting(!isBusy)
+            .onTapGesture {
+                guard !isBusy else { return }
+                onTap()
+                flashHighlight()
+            }
+    }
+
+    private func flashHighlight() {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            highlightAmount = 1
+        }
+        DispatchQueue.main.async {
+            withAnimation(.easeOut(duration: 0.45)) {
+                highlightAmount = 0
             }
         }
     }

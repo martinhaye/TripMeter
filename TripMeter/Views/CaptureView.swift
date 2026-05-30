@@ -17,6 +17,7 @@ struct CaptureView: View {
     @State private var didSaveFlash = false
     @State private var showUnlock = false
     @State private var idleAutoSaveWorkItem: DispatchWorkItem?
+    @State private var lockAutoSaveWorkItem: DispatchWorkItem?
     /// Forces TextEditor recreation so cached glyphs cannot flash after lock/unlock.
     @State private var editorIdentity = UUID()
 
@@ -100,8 +101,11 @@ struct CaptureView: View {
             switch phase {
             case .active:
                 refreshRollingTripNameIfNeeded()
+                lockAutoSaveWorkItem?.cancel()
+                lockAutoSaveWorkItem = nil
             case .inactive:
                 noteFocused = false
+                prepareLockAutoSave()
             default:
                 break
             }
@@ -110,6 +114,8 @@ struct CaptureView: View {
             rescheduleIdleAutoSave()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.protectedDataWillBecomeUnavailableNotification)) { _ in
+            lockAutoSaveWorkItem?.cancel()
+            lockAutoSaveWorkItem = nil
             autoSaveOnDeviceLock()
         }
         .onReceive(NotificationCenter.default.publisher(for: .tripMeterFocusCapture)) { notification in
@@ -201,6 +207,18 @@ struct CaptureView: View {
         performSave(text: textToSave, showConfirmation: false)
     }
 
+    /// Fire haptic while the app is still foregrounded; save shortly after unless the user returns.
+    private func prepareLockAutoSave() {
+        guard canSave else { return }
+        HapticFeedback.savePulseImmediate()
+        lockAutoSaveWorkItem?.cancel()
+        let work = DispatchWorkItem {
+            autoSaveOnDeviceLock()
+        }
+        lockAutoSaveWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: work)
+    }
+
     private func clearCaptureEditor() {
         noteText = ""
         editorIdentity = UUID()
@@ -228,8 +246,8 @@ struct CaptureView: View {
                 source: "typed",
                 context: modelContext
             )
-            HapticFeedback.savePulse()
             if showConfirmation {
+                HapticFeedback.savePulse()
                 didSaveFlash = true
                 DispatchQueue.main.async {
                     noteFocused = true
