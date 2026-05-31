@@ -34,7 +34,7 @@ Siri runs the **Add Trip Thought** intent (you may need to confirm parameters in
 
 - Thought bodies are encrypted with a **Curve25519** public key; the private key is **PBKDF2-wrapped** (600k iterations) with your passphrase.
 - Trip names and timestamps are **plaintext** by design so you can pick a trip without unlocking.
-- Review sessions **auto-lock** after the delay in **Settings** when the app backgrounds.
+- Review sessions **auto-lock** after the delay in **Settings** when the app backgrounds (default **2 minutes**). When the session locks, the app returns to the **Capture** tab.
 - Changing password re-wraps the same private key; stored ciphertext is not re-encrypted.
 - Passphrase entry uses an in-app telephone keypad (`1-9`, `*`, `0`, `#`) instead of the system keyboard. Pressed keys highlight briefly; the last digit shows in the masked display for a moment before hiding. Unlock shows a progress overlay while PBKDF2 decrypts the private key.
 
@@ -55,6 +55,7 @@ When Review is unlocked, **Settings** includes a **Data & Security** section:
 - The editor refocuses when the app becomes active on the Capture tab, when opening from the widget/URL/pending flag (which also selects the Capture tab), and after a successful save so you can keep typing without an extra tap.
 - Capture auto-saves entered text after **2 minutes** without typing, or when the device is **locked**—whichever comes first—using the same save path as the **Another** button. While the app is inactive or in the background, the capture editor is obscured so lock-screen snapshots and unlock transitions never flash draft text.
 - Manual save via **Another** clears the editor, saves (encrypted), and refocuses the field; a soft haptic pulse confirms the save.
+- After **30 seconds** idle on Capture, a brief chime and double-tap haptic play and a lock reminder banner appears (no acknowledgement needed). It clears when you lock the device or start typing again.
 - Capture includes persistent bottom controls for **Hide Keyboard** and **Unlock** (when locked), so unlock is always reachable.
 - Successful unlock switches to the **Review** tab.
 

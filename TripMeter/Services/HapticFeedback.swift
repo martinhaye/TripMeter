@@ -1,3 +1,4 @@
+import AudioToolbox
 import CoreHaptics
 import UIKit
 
@@ -8,15 +9,17 @@ enum HapticFeedback {
         return generator
     }()
 
+    private static let lightImpact: UIImpactFeedbackGenerator = {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.prepare()
+        return generator
+    }()
+
     /// Soft pulse: quick rise, gentle fade. Falls back to impact on unsupported hardware.
     static func savePulse() {
-        guard UIApplication.shared.applicationState == .active else {
-            savePulseImmediate()
-            return
-        }
-
         guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else {
-            savePulseImmediate()
+            softImpact.prepare()
+            softImpact.impactOccurred(intensity: 0.85)
             return
         }
 
@@ -49,17 +52,22 @@ enum HapticFeedback {
                 engine.stop(completionHandler: nil)
             }
         } catch {
-            savePulseImmediate()
+            softImpact.prepare()
+            softImpact.impactOccurred(intensity: 0.85)
         }
-    }
-
-    /// Synchronous UIKit impact — works in the brief window before the app backgrounds.
-    static func savePulseImmediate() {
-        softImpact.prepare()
-        softImpact.impactOccurred(intensity: 0.85)
     }
 
     static func keyTap() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred(intensity: 0.6)
+    }
+
+    /// Gentle chime plus two quick taps — capture idle lock reminder.
+    static func lockScreenReminder() {
+        AudioServicesPlaySystemSound(1057)
+        lightImpact.prepare()
+        lightImpact.impactOccurred(intensity: 0.75)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+            lightImpact.impactOccurred(intensity: 0.75)
+        }
     }
 }

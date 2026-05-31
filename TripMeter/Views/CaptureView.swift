@@ -16,12 +16,14 @@ struct CaptureView: View {
     @State private var saveError: String?
     @State private var didSaveFlash = false
     @State private var showUnlock = false
+    @State private var showLockReminder = false
     @State private var idleAutoSaveWorkItem: DispatchWorkItem?
-    @State private var lockAutoSaveWorkItem: DispatchWorkItem?
+    @State private var lockReminderWorkItem: DispatchWorkItem?
     /// Forces TextEditor recreation so cached glyphs cannot flash after lock/unlock.
     @State private var editorIdentity = UUID()
 
     private static let autoSaveIdleInterval: TimeInterval = 120
+    private static let lockReminderIdleInterval: TimeInterval = 30
 
     private var isCaptureVisible: Bool {
         scenePhase == .active
@@ -37,6 +39,10 @@ struct CaptureView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            if showLockReminder {
+                lockReminderBanner
+            }
+
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color(.secondarySystemBackground))
@@ -96,26 +102,29 @@ struct CaptureView: View {
             DispatchQueue.main.async {
                 noteFocused = true
             }
+            scheduleLockReminder()
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .active:
                 refreshRollingTripNameIfNeeded()
-                lockAutoSaveWorkItem?.cancel()
-                lockAutoSaveWorkItem = nil
+                scheduleLockReminder()
             case .inactive:
                 noteFocused = false
-                prepareLockAutoSave()
+                dismissLockReminder()
             default:
-                break
+                dismissLockReminder()
             }
         }
         .onChange(of: noteText) { _, _ in
+            if showLockReminder {
+                dismissLockReminder()
+            }
             rescheduleIdleAutoSave()
+            scheduleLockReminder()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.protectedDataWillBecomeUnavailableNotification)) { _ in
-            lockAutoSaveWorkItem?.cancel()
-            lockAutoSaveWorkItem = nil
+            dismissLockReminder()
             autoSaveOnDeviceLock()
         }
         .onReceive(NotificationCenter.default.publisher(for: .tripMeterFocusCapture)) { notification in
@@ -123,6 +132,7 @@ struct CaptureView: View {
         }
         .onDisappear {
             cancelIdleAutoSave()
+            cancelLockReminderTimer()
         }
         .safeAreaInset(edge: .bottom) {
             HStack(spacing: 12) {
@@ -159,6 +169,18 @@ struct CaptureView: View {
         .sheet(isPresented: $showUnlock) {
             UnlockView()
         }
+    }
+
+    private var lockReminderBanner: some View {
+        Label("Lock the screen when you're done capturing.", systemImage: "lock.fill")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .transition(.move(edge: .top).combined(with: .opacity))
     }
 
     private func applyCaptureFocus(from notification: Notification) {
@@ -207,16 +229,32 @@ struct CaptureView: View {
         performSave(text: textToSave, showConfirmation: false)
     }
 
-    /// Fire haptic while the app is still foregrounded; save shortly after unless the user returns.
-    private func prepareLockAutoSave() {
-        guard canSave else { return }
-        HapticFeedback.savePulseImmediate()
-        lockAutoSaveWorkItem?.cancel()
+    private func scheduleLockReminder() {
+        cancelLockReminderTimer()
+        guard scenePhase == .active else { return }
+
         let work = DispatchWorkItem {
-            autoSaveOnDeviceLock()
+            guard UIApplication.shared.applicationState == .active else { return }
+            HapticFeedback.lockScreenReminder()
+            withAnimation(.easeInOut(duration: 0.25)) {
+                showLockReminder = true
+            }
         }
-        lockAutoSaveWorkItem = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: work)
+        lockReminderWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.lockReminderIdleInterval, execute: work)
+    }
+
+    private func dismissLockReminder() {
+        cancelLockReminderTimer()
+        guard showLockReminder else { return }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            showLockReminder = false
+        }
+    }
+
+    private func cancelLockReminderTimer() {
+        lockReminderWorkItem?.cancel()
+        lockReminderWorkItem = nil
     }
 
     private func clearCaptureEditor() {

@@ -44,7 +44,10 @@ struct RootCoordinatorView: View {
                 NotificationCenter.default.post(name: .tripMeterFocusCapture, object: nil)
             }
         }
-        .onChange(of: session.isUnlocked) { _, _ in
+        .onChange(of: session.isUnlocked) { _, isUnlocked in
+            if !isUnlocked {
+                selectedTab = 0
+            }
             evaluateBackupReminder()
         }
         .onChange(of: scenePhase) { _, phase in
