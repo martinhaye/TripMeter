@@ -4,6 +4,7 @@ import UIKit
 
 struct NoteDetailView: View {
     let trip: Trip
+    let notes: [Note]
     @State private var selectedNoteID: PersistentIdentifier
     @Environment(AppSession.self) private var session
     @Environment(\.dismiss) private var dismiss
@@ -14,11 +15,18 @@ struct NoteDetailView: View {
 
     init(trip: Trip, note: Note) {
         self.trip = trip
+        self.notes = TripNoteFilter.sortedNotes(in: trip)
+        _selectedNoteID = State(initialValue: note.persistentModelID)
+    }
+
+    init(trip: Trip, notes: [Note], note: Note) {
+        self.trip = trip
+        self.notes = notes
         _selectedNoteID = State(initialValue: note.persistentModelID)
     }
 
     private var orderedNotes: [Note] {
-        trip.notes.sorted { lhs, rhs in
+        notes.sorted { lhs, rhs in
             if lhs.createdAt == rhs.createdAt {
                 return lhs.id.uuidString < rhs.id.uuidString
             }
@@ -205,6 +213,11 @@ private struct NoteDetailPage: View {
         }
         do {
             let payload = try NoteEncryptor.decrypt(blob: note.encryptedPayload, privateKey: key)
+            session.noteTextCache.store(
+                payload.text,
+                for: note.id,
+                payloadHash: note.encryptedPayload.hashValue
+            )
             text = payload.text
             originalText = payload.text
             source = payload.source
@@ -230,6 +243,7 @@ private struct NoteDetailPage: View {
             let blob = try NoteEncryptor.encrypt(payload: payload, recipientPublic: publicKey)
             note.encryptedPayload = blob
             try modelContext.save()
+            session.noteTextCache.store(text, for: note.id, payloadHash: blob.hashValue)
             originalText = text
             if isActive {
                 isDirty = false
@@ -244,8 +258,10 @@ private struct NoteDetailPage: View {
     private func deleteNote() {
         saveError = nil
         do {
+            let noteID = note.id
             modelContext.delete(note)
             try modelContext.save()
+            session.noteTextCache.invalidate(noteID: noteID)
         } catch {
             saveError = error.localizedDescription
         }

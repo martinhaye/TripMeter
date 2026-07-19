@@ -3,20 +3,22 @@ import SwiftUI
 
 struct LuckyView: View {
     let notes: [Note]
-    let privateKey: SecureBytes
+    @Environment(AppSession.self) private var session
     @Environment(\.dismiss) private var dismiss
 
     @State private var displayedText = ""
     @State private var showPickAnother = false
     @State private var showReturn = false
     @State private var lastPickedID: PersistentIdentifier?
+    @State private var pickAnotherRevealWork: DispatchWorkItem?
+    @State private var returnRevealWork: DispatchWorkItem?
 
     private var decryptedNotes: [(note: Note, text: String)] {
         notes.compactMap { note in
-            guard let payload = try? NoteEncryptor.decrypt(blob: note.encryptedPayload, privateKey: privateKey),
-                  !payload.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            guard let text = session.decryptedText(for: note),
+                  !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             else { return nil }
-            return (note, payload.text)
+            return (note, text)
         }
     }
 
@@ -47,7 +49,7 @@ struct LuckyView: View {
                     VStack(spacing: 12) {
                         if showPickAnother {
                             Button("Pick another") {
-                                pickRandom()
+                                pickAnother()
                             }
                             .buttonStyle(.borderedProminent)
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
@@ -72,6 +74,19 @@ struct LuckyView: View {
             pickRandom()
             scheduleButtonReveal()
         }
+        .onDisappear {
+            cancelButtonReveal()
+            displayedText = ""
+        }
+    }
+
+    private func pickAnother() {
+        withAnimation(.easeOut(duration: 0.15)) {
+            showPickAnother = false
+            showReturn = false
+        }
+        pickRandom()
+        scheduleButtonReveal()
     }
 
     private func pickRandom() {
@@ -91,19 +106,32 @@ struct LuckyView: View {
         }
     }
 
+    private func cancelButtonReveal() {
+        pickAnotherRevealWork?.cancel()
+        returnRevealWork?.cancel()
+        pickAnotherRevealWork = nil
+        returnRevealWork = nil
+    }
+
     private func scheduleButtonReveal() {
+        cancelButtonReveal()
         showPickAnother = false
         showReturn = false
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        let pickWork = DispatchWorkItem {
             withAnimation(.easeIn(duration: 0.5)) {
                 showPickAnother = true
             }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+        let returnWork = DispatchWorkItem {
             withAnimation(.easeIn(duration: 0.5)) {
                 showReturn = true
             }
         }
+        pickAnotherRevealWork = pickWork
+        returnRevealWork = returnWork
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: pickWork)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: returnWork)
     }
 }

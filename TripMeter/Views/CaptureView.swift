@@ -23,7 +23,7 @@ struct CaptureView: View {
     @State private var editorIdentity = UUID()
 
     private static let autoSaveIdleInterval: TimeInterval = 120
-    private static let lockReminderIdleInterval: TimeInterval = 30
+    private static let lockReminderIdleIntervalRange: ClosedRange<TimeInterval> = 10...40
 
     private var isCaptureVisible: Bool {
         scenePhase == .active
@@ -241,7 +241,8 @@ struct CaptureView: View {
             }
         }
         lockReminderWorkItem = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.lockReminderIdleInterval, execute: work)
+        let delay = TimeInterval.random(in: Self.lockReminderIdleIntervalRange)
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
     }
 
     private func dismissLockReminder() {

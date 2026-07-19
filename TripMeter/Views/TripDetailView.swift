@@ -3,10 +3,12 @@ import SwiftUI
 
 struct TripDetailView: View {
     let trips: [Trip]
+    let searchQuery: String
     @State private var selectedTripID: PersistentIdentifier
 
-    init(trips: [Trip], trip: Trip) {
+    init(trips: [Trip], trip: Trip, searchQuery: String = "") {
         self.trips = trips
+        self.searchQuery = searchQuery
         _selectedTripID = State(initialValue: trip.persistentModelID)
     }
 
@@ -17,7 +19,7 @@ struct TripDetailView: View {
     var body: some View {
         TabView(selection: $selectedTripID) {
             ForEach(trips, id: \.persistentModelID) { trip in
-                TripNotesList(trip: trip)
+                TripNotesList(trip: trip, searchQuery: searchQuery)
                     .tag(trip.persistentModelID)
             }
         }
@@ -50,14 +52,13 @@ struct TripDetailView: View {
 
 private struct TripNotesList: View {
     @Bindable var trip: Trip
+    let searchQuery: String
     @Environment(AppSession.self) private var session
 
     private var sortedNotes: [Note] {
-        trip.notes.sorted { lhs, rhs in
-            if lhs.createdAt == rhs.createdAt {
-                return lhs.id.uuidString < rhs.id.uuidString
-            }
-            return lhs.createdAt < rhs.createdAt
+        let q = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        return TripNoteFilter.visibleNotes(in: trip, searchQuery: searchQuery) { note in
+            session.decryptedText(for: note)?.localizedCaseInsensitiveContains(q) ?? false
         }
     }
 
@@ -65,9 +66,9 @@ private struct TripNotesList: View {
         List {
             ForEach(sortedNotes, id: \.persistentModelID) { note in
                 NavigationLink {
-                    NoteDetailView(trip: trip, note: note)
+                    NoteDetailView(trip: trip, notes: sortedNotes, note: note)
                 } label: {
-                    NotePreviewLabel(note: note, key: session.unlockedPrivateKey)
+                    NotePreviewLabel(note: note)
                 }
             }
         }
@@ -79,13 +80,10 @@ private struct TripNotesList: View {
 
 private struct NotePreviewLabel: View {
     let note: Note
-    var key: SecureBytes?
+    @Environment(AppSession.self) private var session
 
     private var decrypted: String? {
-        guard let key,
-              let payload = try? NoteEncryptor.decrypt(blob: note.encryptedPayload, privateKey: key)
-        else { return nil }
-        return payload.text
+        session.decryptedText(for: note)
     }
 
     /// Collapses newlines so `lineLimit` shows more distinct segments in the preview.

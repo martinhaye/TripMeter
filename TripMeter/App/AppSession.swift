@@ -7,10 +7,22 @@ final class AppSession {
     private(set) var unlockedPrivateKey: SecureBytes?
     private(set) var failedUnlockAttempts: Int = 0
     private(set) var backupReminderShownForCurrentUnlock = false
+    /// Decrypted thought text for the current unlock session; zeroed on `lock()`.
+    let noteTextCache = NotePlaintextCache()
+    /// Lowercase search index; built while Review search is active, zeroed when search ends or on `lock()`.
+    let noteSearchIndex = NoteSearchIndex()
 
     var isUnlocked: Bool { unlockedPrivateKey != nil }
 
+    /// Cached decrypt of a note's plaintext, or `nil` when locked / decrypt fails.
+    func decryptedText(for note: Note) -> String? {
+        guard let key = unlockedPrivateKey else { return nil }
+        return noteTextCache.text(for: note, privateKey: key)
+    }
+
     func unlock(passphrase: String) throws {
+        noteTextCache.clear()
+        noteSearchIndex.clear()
         let key = try KeyManager.unwrapPrivateKey(passphrase: passphrase)
         unlockedPrivateKey = key
         failedUnlockAttempts = 0
@@ -21,6 +33,8 @@ final class AppSession {
         passphrase: String,
         progress: (@Sendable (Double) -> Void)? = nil
     ) async throws {
+        noteTextCache.clear()
+        noteSearchIndex.clear()
         let key = try await Task.detached(priority: .userInitiated) {
             try KeyManager.unwrapPrivateKey(passphrase: passphrase, progress: progress)
         }.value
@@ -30,6 +44,8 @@ final class AppSession {
     }
 
     func lock() {
+        noteTextCache.clear()
+        noteSearchIndex.clear()
         unlockedPrivateKey = nil
         backupReminderShownForCurrentUnlock = false
     }

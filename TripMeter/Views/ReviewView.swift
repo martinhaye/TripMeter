@@ -7,8 +7,14 @@ struct ReviewView: View {
 
     @Query(sort: \Trip.createdAt, order: .reverse) private var trips: [Trip]
     @State private var search = ""
+    @State private var debouncedSearch = ""
+    @State private var searchDebounceWork: DispatchWorkItem?
     @State private var showUnlock = false
     @State private var showLucky = false
+
+    private var trimmedSearch: String {
+        debouncedSearch.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     var body: some View {
         Group {
@@ -43,7 +49,11 @@ struct ReviewView: View {
                 ContentUnavailableView(
                     "No trips yet",
                     systemImage: "map",
-                    description: Text("Capture thoughts to create trips.")
+                    description: Text(
+                        trimmedSearch.isEmpty
+                            ? "Capture thoughts to create trips."
+                            : "No trips or thoughts match that search."
+                    )
                 )
             } else {
                 VStack(alignment: .leading, spacing: 8) {
@@ -67,11 +77,15 @@ struct ReviewView: View {
                     List {
                         ForEach(filteredTrips, id: \.id) { trip in
                             NavigationLink {
-                                TripDetailView(trips: filteredTrips, trip: trip)
+                                TripDetailView(
+                                    trips: filteredTrips,
+                                    trip: trip,
+                                    searchQuery: trimmedSearch
+                                )
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(trip.name).font(.headline)
-                                    Text("\(trip.notes.count) thoughts")
+                                    Text("\(visibleNotes(in: trip).count) thoughts")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -82,10 +96,17 @@ struct ReviewView: View {
             }
         }
         .searchable(text: $search, prompt: "Trip name or thought text")
+        .onChange(of: search) { _, newValue in
+            scheduleSearchUpdate(newValue)
+        }
+        .onChange(of: trips.count) { _, _ in
+            rebuildSearchIndexIfNeeded()
+        }
+        .onDisappear {
+            searchDebounceWork?.cancel()
+        }
         .navigationDestination(isPresented: $showLucky) {
-            if let key = session.unlockedPrivateKey {
-                LuckyView(notes: allVisibleNotes, privateKey: key)
-            }
+            LuckyView(notes: allVisibleNotes)
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -97,28 +118,100 @@ struct ReviewView: View {
     }
 
     private var filteredTrips: [Trip] {
-        let q = search.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !q.isEmpty, let key = session.unlockedPrivateKey else {
-            return trips
-        }
-        if q.isEmpty { return trips }
+        let q = trimmedSearch
+        guard !q.isEmpty else { return trips }
 
+        let lowered = q.lowercased()
         return trips.filter { trip in
             if trip.name.localizedCaseInsensitiveContains(q) { return true }
             return trip.notes.contains { note in
-                (try? NoteEncryptor.decrypt(blob: note.encryptedPayload, privateKey: key))?
-                    .text.localizedCaseInsensitiveContains(q) ?? false
+                session.noteSearchIndex.matches(noteID: note.id, lowercaseQuery: lowered)
             }
         }
     }
 
     private var totalVisibleNotes: Int {
         filteredTrips.reduce(into: 0) { total, trip in
-            total += trip.notes.count
+            total += visibleNotes(in: trip).count
         }
     }
 
     private var allVisibleNotes: [Note] {
-        filteredTrips.flatMap(\.notes)
+        filteredTrips.flatMap { visibleNotes(in: $0) }
+    }
+
+    /// Notes shown for a trip under the current search (all notes when idle; matches only while searching).
+    private func visibleNotes(in trip: Trip) -> [Note] {
+        TripNoteFilter.visibleNotes(
+            in: trip,
+            searchQuery: trimmedSearch,
+            matchesText: { note in
+                session.noteSearchIndex.matches(
+                    noteID: note.id,
+                    lowercaseQuery: trimmedSearch.lowercased()
+                )
+            }
+        )
+    }
+
+    private func scheduleSearchUpdate(_ raw: String) {
+        searchDebounceWork?.cancel()
+        let work = DispatchWorkItem {
+            applySearch(raw)
+        }
+        searchDebounceWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18, execute: work)
+    }
+
+    private func applySearch(_ raw: String) {
+        let q = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if q.isEmpty {
+            endSearchCaching()
+            debouncedSearch = ""
+            return
+        }
+
+        rebuildSearchIndex()
+        debouncedSearch = q
+    }
+
+    private func rebuildSearchIndexIfNeeded() {
+        guard !trimmedSearch.isEmpty else { return }
+        rebuildSearchIndex()
+    }
+
+    private func rebuildSearchIndex() {
+        session.noteSearchIndex.ensureBuilt(notes: trips.flatMap(\.notes)) { note in
+            session.decryptedText(for: note)
+        }
+    }
+
+    private func endSearchCaching() {
+        session.noteSearchIndex.clear()
+    }
+}
+
+enum TripNoteFilter {
+    static func sortedNotes(in trip: Trip) -> [Note] {
+        trip.notes.sorted { lhs, rhs in
+            if lhs.createdAt == rhs.createdAt {
+                return lhs.id.uuidString < rhs.id.uuidString
+            }
+            return lhs.createdAt < rhs.createdAt
+        }
+    }
+
+    /// When `searchQuery` is empty, all notes. While searching, only notes whose text matches
+    /// (trip-name matches still only list matching thoughts — possibly zero).
+    static func visibleNotes(
+        in trip: Trip,
+        searchQuery: String,
+        matchesText: (Note) -> Bool
+    ) -> [Note] {
+        let sorted = sortedNotes(in: trip)
+        let q = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else { return sorted }
+
+        return sorted.filter(matchesText)
     }
 }
