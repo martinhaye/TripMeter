@@ -58,7 +58,8 @@ struct NoteDetailView: View {
                             if note.persistentModelID == selectedNoteID {
                                 saveCurrentPage = handler
                             }
-                        }
+                        },
+                        onDelete: { dismiss() }
                     )
                     .tag(note.persistentModelID)
                 }
@@ -119,6 +120,7 @@ private struct NoteDetailPage: View {
     let isActive: Bool
     @Binding var isDirty: Bool
     let registerSaveHandler: (@escaping () -> Bool) -> Void
+    let onDelete: () -> Void
 
     @Environment(AppSession.self) private var session
     @Environment(\.modelContext) private var modelContext
@@ -262,6 +264,7 @@ private struct NoteDetailPage: View {
             modelContext.delete(note)
             try modelContext.save()
             session.noteTextCache.invalidate(noteID: noteID)
+            onDelete()
         } catch {
             saveError = error.localizedDescription
         }

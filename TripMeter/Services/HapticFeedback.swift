@@ -3,8 +3,8 @@ import CoreHaptics
 import UIKit
 
 enum HapticFeedback {
-    private static let softImpact: UIImpactFeedbackGenerator = {
-        let generator = UIImpactFeedbackGenerator(style: .soft)
+    private static let keyTapImpact: UIImpactFeedbackGenerator = {
+        let generator = UIImpactFeedbackGenerator(style: .light)
         generator.prepare()
         return generator
     }()
@@ -18,15 +18,179 @@ enum HapticFeedback {
     /// Retains the engine/player until the pattern finishes (locals alone can cut haptics short).
     private static var activeSavePulse: (engine: CHHapticEngine, player: CHHapticPatternPlayer)?
 
-    /// Interesting multi-second pulse: continuous swell plus a few spaced hits at varied intensity.
+    private struct PulseBeat {
+        let time: TimeInterval
+        let intensity: Float
+        let sharpness: Float
+    }
+
+    private struct SavePulsePattern {
+        let cycleDuration: TimeInterval
+        let beats: [PulseBeat]
+    }
+
+    private enum PatternFitMode: CaseIterable {
+        case repeatToFit
+        case stretchToFit
+        case pingPongToFit
+    }
+
+    /// Twenty deliberate rhythms. Values stay fairly strong so each shape reads clearly.
+    private static let savePulsePatterns: [SavePulsePattern] = [
+        // Heartbeat
+        .init(cycleDuration: 0.72, beats: [
+            .init(time: 0, intensity: 1.00, sharpness: 0.30),
+            .init(time: 0.16, intensity: 0.78, sharpness: 0.55),
+        ]),
+        // Gallop
+        .init(cycleDuration: 0.90, beats: [
+            .init(time: 0, intensity: 0.68, sharpness: 0.45),
+            .init(time: 0.14, intensity: 0.82, sharpness: 0.60),
+            .init(time: 0.34, intensity: 1.00, sharpness: 0.80),
+        ]),
+        // Knock, pause, knock-knock
+        .init(cycleDuration: 1.05, beats: [
+            .init(time: 0, intensity: 0.95, sharpness: 0.30),
+            .init(time: 0.12, intensity: 0.72, sharpness: 0.35),
+            .init(time: 0.58, intensity: 0.92, sharpness: 0.65),
+            .init(time: 0.72, intensity: 0.92, sharpness: 0.65),
+        ]),
+        // Upbeat triplet
+        .init(cycleDuration: 0.80, beats: [
+            .init(time: 0, intensity: 0.70, sharpness: 0.35),
+            .init(time: 0.28, intensity: 0.84, sharpness: 0.60),
+            .init(time: 0.42, intensity: 1.00, sharpness: 0.90),
+        ]),
+        // Four-corner
+        .init(cycleDuration: 1.15, beats: [
+            .init(time: 0, intensity: 1.00, sharpness: 0.75),
+            .init(time: 0.18, intensity: 0.72, sharpness: 0.35),
+            .init(time: 0.36, intensity: 0.72, sharpness: 0.35),
+            .init(time: 0.78, intensity: 0.94, sharpness: 0.75),
+        ]),
+        // Quick double with an echo
+        .init(cycleDuration: 0.95, beats: [
+            .init(time: 0, intensity: 1.00, sharpness: 0.85),
+            .init(time: 0.10, intensity: 0.88, sharpness: 0.80),
+            .init(time: 0.20, intensity: 0.76, sharpness: 0.70),
+            .init(time: 0.62, intensity: 0.66, sharpness: 0.25),
+        ]),
+        // Steady five
+        .init(cycleDuration: 1.20, beats: [
+            .init(time: 0, intensity: 1.00, sharpness: 0.50),
+            .init(time: 0.24, intensity: 0.72, sharpness: 0.50),
+            .init(time: 0.48, intensity: 0.84, sharpness: 0.50),
+            .init(time: 0.72, intensity: 0.72, sharpness: 0.50),
+            .init(time: 0.96, intensity: 1.00, sharpness: 0.50),
+        ]),
+        // Late flurry
+        .init(cycleDuration: 0.82, beats: [
+            .init(time: 0, intensity: 0.92, sharpness: 0.30),
+            .init(time: 0.32, intensity: 0.68, sharpness: 0.55),
+            .init(time: 0.46, intensity: 0.84, sharpness: 0.72),
+            .init(time: 0.60, intensity: 1.00, sharpness: 0.92),
+        ]),
+        // Two pairs
+        .init(cycleDuration: 1.10, beats: [
+            .init(time: 0, intensity: 1.00, sharpness: 0.65),
+            .init(time: 0.12, intensity: 0.76, sharpness: 0.40),
+            .init(time: 0.24, intensity: 0.88, sharpness: 0.55),
+            .init(time: 0.68, intensity: 0.76, sharpness: 0.40),
+            .init(time: 0.84, intensity: 1.00, sharpness: 0.75),
+        ]),
+        // Strong-soft-strong
+        .init(cycleDuration: 0.90, beats: [
+            .init(time: 0, intensity: 1.00, sharpness: 0.25),
+            .init(time: 0.18, intensity: 0.66, sharpness: 0.80),
+            .init(time: 0.54, intensity: 1.00, sharpness: 0.55),
+        ]),
+        // Rolling six
+        .init(cycleDuration: 1.25, beats: [
+            .init(time: 0, intensity: 0.68, sharpness: 0.30),
+            .init(time: 0.16, intensity: 0.76, sharpness: 0.40),
+            .init(time: 0.32, intensity: 0.86, sharpness: 0.50),
+            .init(time: 0.72, intensity: 0.78, sharpness: 0.60),
+            .init(time: 0.88, intensity: 0.88, sharpness: 0.72),
+            .init(time: 1.04, intensity: 1.00, sharpness: 0.90),
+        ]),
+        // Machine burst
+        .init(cycleDuration: 0.76, beats: [
+            .init(time: 0, intensity: 1.00, sharpness: 0.95),
+            .init(time: 0.12, intensity: 0.76, sharpness: 0.90),
+            .init(time: 0.24, intensity: 0.88, sharpness: 0.90),
+            .init(time: 0.36, intensity: 0.70, sharpness: 0.85),
+        ]),
+        // Pause then three
+        .init(cycleDuration: 1.00, beats: [
+            .init(time: 0, intensity: 1.00, sharpness: 0.35),
+            .init(time: 0.40, intensity: 0.68, sharpness: 0.60),
+            .init(time: 0.52, intensity: 0.84, sharpness: 0.72),
+            .init(time: 0.64, intensity: 1.00, sharpness: 0.85),
+        ]),
+        // March with a finale
+        .init(cycleDuration: 1.18, beats: [
+            .init(time: 0, intensity: 0.94, sharpness: 0.40),
+            .init(time: 0.20, intensity: 0.72, sharpness: 0.40),
+            .init(time: 0.40, intensity: 0.94, sharpness: 0.40),
+            .init(time: 0.60, intensity: 0.72, sharpness: 0.40),
+            .init(time: 0.98, intensity: 1.00, sharpness: 0.82),
+        ]),
+        // Bookended doubles
+        .init(cycleDuration: 0.88, beats: [
+            .init(time: 0, intensity: 1.00, sharpness: 0.75),
+            .init(time: 0.10, intensity: 0.78, sharpness: 0.55),
+            .init(time: 0.44, intensity: 0.78, sharpness: 0.55),
+            .init(time: 0.54, intensity: 1.00, sharpness: 0.75),
+        ]),
+        // Long roll
+        .init(cycleDuration: 1.30, beats: [
+            .init(time: 0, intensity: 1.00, sharpness: 0.25),
+            .init(time: 0.14, intensity: 0.82, sharpness: 0.35),
+            .init(time: 0.28, intensity: 0.70, sharpness: 0.45),
+            .init(time: 0.42, intensity: 0.82, sharpness: 0.55),
+            .init(time: 0.82, intensity: 0.90, sharpness: 0.72),
+            .init(time: 1.10, intensity: 1.00, sharpness: 0.90),
+        ]),
+        // Rising quarters
+        .init(cycleDuration: 1.05, beats: [
+            .init(time: 0, intensity: 0.68, sharpness: 0.30),
+            .init(time: 0.26, intensity: 0.78, sharpness: 0.48),
+            .init(time: 0.52, intensity: 0.88, sharpness: 0.66),
+            .init(time: 0.78, intensity: 1.00, sharpness: 0.88),
+        ]),
+        // Stutter and answer
+        .init(cycleDuration: 0.92, beats: [
+            .init(time: 0, intensity: 0.88, sharpness: 0.90),
+            .init(time: 0.11, intensity: 0.72, sharpness: 0.85),
+            .init(time: 0.22, intensity: 0.88, sharpness: 0.90),
+            .init(time: 0.52, intensity: 1.00, sharpness: 0.35),
+            .init(time: 0.74, intensity: 0.84, sharpness: 0.55),
+        ]),
+        // Alternating weight
+        .init(cycleDuration: 1.22, beats: [
+            .init(time: 0, intensity: 1.00, sharpness: 0.25),
+            .init(time: 0.30, intensity: 0.68, sharpness: 0.90),
+            .init(time: 0.44, intensity: 0.94, sharpness: 0.30),
+            .init(time: 0.74, intensity: 0.68, sharpness: 0.90),
+            .init(time: 0.88, intensity: 1.00, sharpness: 0.35),
+        ]),
+        // Accelerating ladder
+        .init(cycleDuration: 1.00, beats: [
+            .init(time: 0, intensity: 0.68, sharpness: 0.35),
+            .init(time: 0.15, intensity: 0.74, sharpness: 0.45),
+            .init(time: 0.30, intensity: 0.80, sharpness: 0.55),
+            .init(time: 0.45, intensity: 0.88, sharpness: 0.65),
+            .init(time: 0.60, intensity: 0.94, sharpness: 0.78),
+            .init(time: 0.75, intensity: 1.00, sharpness: 0.92),
+        ]),
+    ]
+
+    /// Plays one authored rhythm, fitted to the selected duration in one of three ways.
     static func savePulse() {
-        let duration = Double.random(in: 0.5...1.5)
-        let hitCount = Int.random(in: 3...5)
-        let intensities = (0..<hitCount).map { _ in Float.random(in: 0.25...1.0) }
-        let times = Self.spacedEventTimes(count: hitCount, duration: duration)
+        let duration = Self.randomSavePulseDuration()
 
         guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else {
-            playImpactFallback(intensities: intensities, times: times, duration: duration)
+            playUnavailableFallback()
             return
         }
 
@@ -34,52 +198,24 @@ enum HapticFeedback {
             let engine = try CHHapticEngine()
             try engine.start()
 
-            var events: [CHHapticEvent] = []
-            var curves: [CHHapticParameterCurve] = []
-
-            // Continuous base so the pulse has body across the whole window.
-            let baseIntensity = Float.random(in: 0.2...0.45)
-            let baseSharpness = Float.random(in: 0.15...0.4)
-            events.append(
+            let selectedPattern = savePulsePatterns.randomElement()!
+            let fitMode = PatternFitMode.allCases.randomElement()!
+            let events = fittedBeats(
+                from: selectedPattern,
+                duration: duration,
+                mode: fitMode
+            ).map { time, beat in
                 CHHapticEvent(
-                    eventType: .hapticContinuous,
+                    eventType: .hapticTransient,
                     parameters: [
-                        CHHapticEventParameter(parameterID: .hapticIntensity, value: baseIntensity),
-                        CHHapticEventParameter(parameterID: .hapticSharpness, value: baseSharpness),
+                        CHHapticEventParameter(parameterID: .hapticIntensity, value: beat.intensity),
+                        CHHapticEventParameter(parameterID: .hapticSharpness, value: beat.sharpness),
                     ],
-                    relativeTime: 0,
-                    duration: duration
-                )
-            )
-
-            // Slow intensity drift — changes humans can actually feel.
-            let controlPoints = Self.swellControlPoints(duration: duration, peak: Float.random(in: 0.55...1.0))
-            curves.append(
-                CHHapticParameterCurve(
-                    parameterID: .hapticIntensityControl,
-                    controlPoints: controlPoints,
-                    relativeTime: 0
-                )
-            )
-
-            // Spaced transient accents with distinct intensities/sharpness.
-            for (time, intensity) in zip(times, intensities) {
-                events.append(
-                    CHHapticEvent(
-                        eventType: .hapticTransient,
-                        parameters: [
-                            CHHapticEventParameter(parameterID: .hapticIntensity, value: intensity),
-                            CHHapticEventParameter(
-                                parameterID: .hapticSharpness,
-                                value: Float.random(in: 0.2...0.9)
-                            ),
-                        ],
-                        relativeTime: time
-                    )
+                    relativeTime: time
                 )
             }
 
-            let pattern = try CHHapticPattern(events: events, parameterCurves: curves)
+            let pattern = try CHHapticPattern(events: events, parameters: [])
             let player = try engine.makePlayer(with: pattern)
             activeSavePulse = (engine, player)
             try player.start(atTime: CHHapticTimeImmediate)
@@ -91,12 +227,13 @@ enum HapticFeedback {
                 }
             }
         } catch {
-            playImpactFallback(intensities: intensities, times: times, duration: duration)
+            playUnavailableFallback()
         }
     }
 
     static func keyTap() {
-        UIImpactFeedbackGenerator(style: .light).impactOccurred(intensity: 0.6)
+        keyTapImpact.impactOccurred(intensity: 0.6)
+        keyTapImpact.prepare()
     }
 
     /// Gentle chime plus two quick taps — capture idle lock reminder.
@@ -109,60 +246,55 @@ enum HapticFeedback {
         }
     }
 
-    /// Evenly slotted times with jitter so hits stay spaced enough to feel intensity changes.
-    private static func spacedEventTimes(count: Int, duration: Double) -> [TimeInterval] {
-        guard count > 0 else { return [] }
-        if count == 1 { return [duration * Double.random(in: 0.15...0.45)] }
-
-        let slot = duration / Double(count)
-        // Keep at least ~120ms between hits when duration allows.
-        let minGap = min(0.12, slot * 0.5)
-        var times: [TimeInterval] = []
-        for i in 0..<count {
-            let start = Double(i) * slot
-            let end = start + slot - minGap
-            let lo = start + minGap * 0.25
-            let hi = max(lo, end)
-            times.append(Double.random(in: lo...hi))
+    /// Whole-second durations weighted toward shorter patterns:
+    /// 1s: 30%, 2s: 23%, 3s: 20%, 4s: 17%, 5s: 10%.
+    private static func randomSavePulseDuration() -> Double {
+        switch Int.random(in: 0..<100) {
+        case 0..<30: 1
+        case 30..<53: 2
+        case 53..<73: 3
+        case 73..<90: 4
+        default: 5
         }
-        return times.sorted()
     }
 
-    private static func swellControlPoints(
+    private static func fittedBeats(
+        from pattern: SavePulsePattern,
         duration: Double,
-        peak: Float
-    ) -> [CHHapticParameterCurve.ControlPoint] {
-        // 3–4 slow waypoints so the swell is readable, not a buzz.
-        let midA = duration * Double.random(in: 0.25...0.4)
-        let midB = duration * Double.random(in: 0.55...0.75)
-        let midIntensity = Float.random(in: 0.3...0.7)
-        return [
-            .init(relativeTime: 0, value: Float.random(in: 0.15...0.35)),
-            .init(relativeTime: midA, value: peak),
-            .init(relativeTime: midB, value: midIntensity),
-            .init(relativeTime: duration, value: Float.random(in: 0.1...0.3)),
-        ]
+        mode: PatternFitMode
+    ) -> [(TimeInterval, PulseBeat)] {
+        switch mode {
+        case .stretchToFit:
+            let patternSpan = max(pattern.beats.map(\.time).max() ?? 0, 0.01)
+            let targetSpan = duration * 0.92
+            return pattern.beats.map { beat in
+                (beat.time / patternSpan * targetSpan, beat)
+            }
+
+        case .repeatToFit, .pingPongToFit:
+            let pingPong = mode == .pingPongToFit
+            let patternSpan = pattern.beats.map(\.time).max() ?? 0
+            var result: [(TimeInterval, PulseBeat)] = []
+            var cycleStart: TimeInterval = 0
+            var cycleIndex = 0
+
+            while cycleStart < duration {
+                let reverse = pingPong && cycleIndex.isMultiple(of: 2) == false
+                for beat in pattern.beats {
+                    let localTime = reverse ? patternSpan - beat.time : beat.time
+                    let eventTime = cycleStart + localTime
+                    if eventTime < duration {
+                        result.append((eventTime, beat))
+                    }
+                }
+                cycleStart += pattern.cycleDuration
+                cycleIndex += 1
+            }
+            return result.sorted { $0.0 < $1.0 }
+        }
     }
 
-    private static func playImpactFallback(
-        intensities: [Float],
-        times: [TimeInterval],
-        duration: Double
-    ) {
-        softImpact.prepare()
-        // Soft continuous stand-in: a few extra soft taps across the window.
-        let baseCount = max(3, Int(duration / 0.35))
-        for i in 0..<baseCount {
-            let t = duration * Double(i) / Double(max(baseCount - 1, 1))
-            let base = Float.random(in: 0.2...0.45)
-            DispatchQueue.main.asyncAfter(deadline: .now() + t) {
-                softImpact.impactOccurred(intensity: CGFloat(base))
-            }
-        }
-        for (time, intensity) in zip(times, intensities) {
-            DispatchQueue.main.asyncAfter(deadline: .now() + time) {
-                softImpact.impactOccurred(intensity: CGFloat(intensity))
-            }
-        }
+    private static func playUnavailableFallback() {
+        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
     }
 }

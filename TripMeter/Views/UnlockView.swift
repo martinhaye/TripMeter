@@ -193,7 +193,7 @@ struct TelephonePasscodeEntry: View {
     }
 }
 
-// MARK: - Key cell (tap gesture avoids Form swallowing Button styles)
+// MARK: - Key cell
 
 private struct PasscodeKeyView: View {
     let label: String
@@ -203,27 +203,29 @@ private struct PasscodeKeyView: View {
     @State private var highlightAmount: Double = 0
 
     var body: some View {
-        Text(label)
-            .font(.title2.weight(.semibold))
-            .foregroundStyle(.primary)
-            .frame(maxWidth: .infinity, minHeight: 72)
-            .background {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemBackground))
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.blue.opacity(0.55 * highlightAmount))
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .contentShape(RoundedRectangle(cornerRadius: 12))
-            .opacity(isBusy ? 0.45 : 1)
-            .allowsHitTesting(!isBusy)
-            .onTapGesture {
-                guard !isBusy else { return }
-                onTap()
-                flashHighlight()
-            }
+        Button {
+            guard !isBusy else { return }
+            onTap()
+            flashHighlight()
+        } label: {
+            Text(label)
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity, minHeight: 72)
+                .background {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.secondarySystemBackground))
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.blue.opacity(0.55 * highlightAmount))
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .contentShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+        .opacity(isBusy ? 0.45 : 1)
+        .disabled(isBusy)
     }
 
     private func flashHighlight() {
