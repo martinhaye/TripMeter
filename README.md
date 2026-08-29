@@ -54,14 +54,14 @@ When Review is unlocked, **Settings** includes a **Data & Security** section:
 - The capture screen navigation title is **TripMeter**. The tab label remains **Capture**.
 - The editor refocuses when the app becomes active on the Capture tab, when opening from the widget/URL/pending flag (which also selects the Capture tab), and after a successful save so you can keep typing without an extra tap.
 - Capture auto-saves entered text after **2 minutes** without typing, or when the device is **locked**—whichever comes first—using the same save path as the **Another** button. While the app is inactive or in the background, the capture editor is obscured so lock-screen snapshots and unlock transitions never flash draft text.
-- Manual save via **Another** clears the editor, saves (encrypted), and refocuses the field; a randomized continuous swell plus spaced haptic accents (~0.5–1.5s) confirms the save.
+- Manual save via **Another** clears the editor, saves (encrypted), and refocuses the field; a randomized haptic confirms the save. Most are a few seconds. Once in a while, they are not.
 - After a random **10–40 seconds** idle on Capture, a brief chime and double-tap haptic play and a lock reminder banner appears (no acknowledgement needed). It clears when you lock the device or start typing again.
 - Capture includes persistent bottom controls for **Hide Keyboard** and **Unlock** (when locked), so unlock is always reachable.
 - Successful unlock switches to the **Review** tab.
 
-In **Review**, each thought in a trip’s list shows a short preview (a few lines). Newlines in the stored text are replaced by ` / ` so more segments fit in the preview. A trip’s detail screen has an **Add** button that opens **Capture** with that trip selected. Swipe left or right on a trip’s thought list to move between trips (within the current search results), and swipe left or right on a thought to move between thoughts in that trip. Search matches trip names or thought text; while searching, each matching trip lists only thoughts whose text matches the query (a trip-name hit with no matching thoughts shows zero). Thought text for search is indexed while the query is active and securely zeroed when search is cleared or the session locks; decrypted previews also use a session cache zeroed on lock. **Feeling Lucky Punk?** (near the top of the trip list) opens **Lucky** mode: one random thought in a serif layout, with **Pick another** and **Return to reality** fading in after a short pause (and fading out briefly before revealing again on **Pick another**).
+In **Review**, each thought in a trip’s list shows a short preview (a few lines). Newlines in the stored text are replaced by ` / ` so more segments fit in the preview. Unreviewed thoughts show a leading dot; trips that still have unreviewed thoughts (among those currently listed) are marked the same way. A thought is marked reviewed only when its individual thought screen is shown — including after swiping to it — not merely by appearing in a trip’s thought list. A trip’s detail screen has an **Add** button that opens **Capture** with that trip selected. Swipe left or right on a trip’s thought list to move between trips (within the current search results), and swipe left or right on a thought to move between thoughts in that trip. Search matches trip names or thought text; while searching, each matching trip lists only thoughts whose text matches the query (a trip-name hit with no matching thoughts shows zero). Thought text for search is indexed while the query is active and securely zeroed when search is cleared or the session locks; decrypted previews also use a session cache zeroed on lock. **Lucky?** (near the top of the trip list) opens **Lucky** mode: one random thought in a serif layout, with **Pick another** and **Return to reality** fading in after a short pause (and fading out briefly before revealing again on **Pick another**). **Contraband?** is the same idea, but only among thoughts marked as contraband.
 
-In a thought detail screen, **Save** is enabled only when the text has changed. After a successful save, it becomes disabled again until you edit more. If you go back to the thoughts list with unsaved edits, the app prompts you to choose **Discard** or **Save**.
+In a thought detail screen, **Save** is enabled only when the text has changed. After a successful save, it becomes disabled again until you edit more. If you go back to the thoughts list with unsaved edits, the app prompts you to choose **Discard** or **Save**. **Smuggle** marks the thought as contraband (plaintext flag; the thought text stays encrypted); **Un-smuggle** clears it.
 
 ### Backup format (v1)
 
@@ -71,7 +71,7 @@ Backup JSON includes:
 - `createdAt` (backup timestamp)
 - current public key (base64)
 - wrapped private key package JSON (base64)
-- all trips + per-trip thought records with encrypted payload bytes (base64)
+- all trips + per-trip thought records with encrypted payload bytes (base64) and plaintext `isContraband` / `isReviewed` flags (omitted in older backups; treated as `false`)
 
 Backups are intentionally unreadable without the backup password needed to unwrap the backed-up private key.
 
@@ -86,7 +86,7 @@ The script includes inline dependency metadata, so `uv` can run it in one step.
 2. Or just validate/decrypt and print counts:
    - `uv run scripts/decode_backup.py /path/to/tripmeter-backup-YYYY-MM-DD.json --password "your-backup-password" --summary-only`
 
-Output format includes trips and decrypted thought payloads (`text`, `editedAt`, `source`). JSON keys still use `notes` for backward compatibility with existing backups.
+Output format includes trips and decrypted thought payloads (`text`, `editedAt`, `source`), plus plaintext `isContraband` and `isReviewed` flags per thought. JSON keys still use `notes` for backward compatibility with existing backups.
 
 ## App icon
 

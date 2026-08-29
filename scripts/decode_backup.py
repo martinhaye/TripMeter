@@ -182,6 +182,8 @@ def decode_backup(backup_path: Path, backup_password: str) -> dict[str, Any]:
                 {
                     "id": note.get("id"),
                     "createdAt": note.get("createdAt"),
+                    "isContraband": bool(note.get("isContraband", False)),
+                    "isReviewed": bool(note.get("isReviewed", False)),
                     "payload": payload,
                 }
             )

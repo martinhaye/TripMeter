@@ -587,6 +587,31 @@ private struct BackupNote: Codable {
     var id: UUID
     var createdAt: Date
     var encryptedPayloadBase64: String
+    var isContraband: Bool
+    var isReviewed: Bool
+
+    init(
+        id: UUID,
+        createdAt: Date,
+        encryptedPayloadBase64: String,
+        isContraband: Bool,
+        isReviewed: Bool
+    ) {
+        self.id = id
+        self.createdAt = createdAt
+        self.encryptedPayloadBase64 = encryptedPayloadBase64
+        self.isContraband = isContraband
+        self.isReviewed = isReviewed
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        encryptedPayloadBase64 = try container.decode(String.self, forKey: .encryptedPayloadBase64)
+        isContraband = try container.decodeIfPresent(Bool.self, forKey: .isContraband) ?? false
+        isReviewed = try container.decodeIfPresent(Bool.self, forKey: .isReviewed) ?? false
+    }
 }
 
 private struct TripMeterBackupDocument: FileDocument {
@@ -629,7 +654,9 @@ private enum BackupService {
                     BackupNote(
                         id: note.id,
                         createdAt: note.createdAt,
-                        encryptedPayloadBase64: note.encryptedPayload.base64EncodedString()
+                        encryptedPayloadBase64: note.encryptedPayload.base64EncodedString(),
+                        isContraband: note.isContraband,
+                        isReviewed: note.isReviewed
                     )
                 }
             )
@@ -697,6 +724,8 @@ private enum BackupService {
                         id: noteID,
                         createdAt: note.createdAt,
                         encryptedPayload: newBlob,
+                        isContraband: note.isContraband,
+                        isReviewed: note.isReviewed,
                         trip: restoredTrip
                     )
                 )

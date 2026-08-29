@@ -6,11 +6,12 @@ struct ReviewView: View {
     @Environment(AppSession.self) private var session
 
     @Query(sort: \Trip.createdAt, order: .reverse) private var trips: [Trip]
+    @Query private var notes: [Note]
     @State private var search = ""
     @State private var debouncedSearch = ""
     @State private var searchDebounceWork: DispatchWorkItem?
     @State private var showUnlock = false
-    @State private var showLucky = false
+    @State private var fortune: ReviewFortune?
 
     private var trimmedSearch: String {
         debouncedSearch.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -63,15 +64,25 @@ struct ReviewView: View {
                         .padding(.horizontal)
                         .padding(.top, 4)
 
-                    Button("Feeling Lucky Punk?") {
-                        showLucky = true
+                    HStack(spacing: 10) {
+                        Button("Lucky?") {
+                            fortune = .lucky
+                        }
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color(.secondarySystemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                        Button("Contraband?") {
+                            fortune = .contraband
+                        }
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color(.secondarySystemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .padding(.horizontal)
-                    .background(Color(.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
                     .padding(.horizontal)
 
                     List {
@@ -83,12 +94,22 @@ struct ReviewView: View {
                                     searchQuery: trimmedSearch
                                 )
                             } label: {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(trip.name).font(.headline)
-                                    Text("\(visibleNotes(in: trip).count) thoughts")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                HStack(alignment: .center, spacing: 10) {
+                                    UnreviewedDot(
+                                        show: hasUnreviewedVisibleNotes(in: trip)
+                                    )
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(trip.name).font(.headline)
+                                        Text("\(visibleNotes(in: trip).count) thoughts")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
+                                .accessibilityValue(
+                                    hasUnreviewedVisibleNotes(in: trip)
+                                        ? "Has unreviewed thoughts"
+                                        : ""
+                                )
                             }
                         }
                     }
@@ -105,8 +126,18 @@ struct ReviewView: View {
         .onDisappear {
             searchDebounceWork?.cancel()
         }
-        .navigationDestination(isPresented: $showLucky) {
-            LuckyView(notes: allVisibleNotes)
+        .navigationDestination(item: $fortune) { destination in
+            switch destination {
+            case .lucky:
+                LuckyView(notes: allVisibleNotes)
+            case .contraband:
+                LuckyView(
+                    notes: allVisibleNotes.filter(\.isContraband),
+                    navigationTitle: "Contraband",
+                    emptyTitle: "No contraband to show",
+                    emptyDescription: "Smuggle a thought first."
+                )
+            }
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -154,6 +185,11 @@ struct ReviewView: View {
         )
     }
 
+    private func hasUnreviewedVisibleNotes(in trip: Trip) -> Bool {
+        let unreviewedIDs = Set(notes.filter { !$0.isReviewed }.map(\.id))
+        return visibleNotes(in: trip).contains { unreviewedIDs.contains($0.id) }
+    }
+
     private func scheduleSearchUpdate(_ raw: String) {
         searchDebounceWork?.cancel()
         let work = DispatchWorkItem {
@@ -188,6 +224,24 @@ struct ReviewView: View {
 
     private func endSearchCaching() {
         session.noteSearchIndex.clear()
+    }
+}
+
+private enum ReviewFortune: Hashable, Identifiable {
+    case lucky
+    case contraband
+
+    var id: Self { self }
+}
+
+struct UnreviewedDot: View {
+    var show: Bool
+
+    var body: some View {
+        Circle()
+            .fill(show ? Color.accentColor : Color.clear)
+            .frame(width: 8, height: 8)
+            .accessibilityHidden(!show)
     }
 }
 

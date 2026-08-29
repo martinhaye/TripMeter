@@ -3,6 +3,10 @@ import SwiftUI
 
 struct LuckyView: View {
     let notes: [Note]
+    var navigationTitle: String = "Lucky"
+    var emptyTitle: String = "No thoughts to show"
+    var emptyDescription: String = "Capture some thoughts first."
+
     @Environment(AppSession.self) private var session
     @Environment(\.dismiss) private var dismiss
 
@@ -29,9 +33,9 @@ struct LuckyView: View {
 
             if decryptedNotes.isEmpty {
                 ContentUnavailableView(
-                    "No thoughts to show",
+                    emptyTitle,
                     systemImage: "sparkles",
-                    description: Text("Capture some thoughts first.")
+                    description: Text(emptyDescription)
                 )
             } else {
                 ScrollView {
@@ -68,7 +72,7 @@ struct LuckyView: View {
                 }
             }
         }
-        .navigationTitle("Lucky")
+        .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             pickRandom()

@@ -68,7 +68,7 @@ private struct TripNotesList: View {
                 NavigationLink {
                     NoteDetailView(trip: trip, notes: sortedNotes, note: note)
                 } label: {
-                    NotePreviewLabel(note: note)
+                    ThoughtListRow(note: note)
                 }
             }
         }
@@ -76,10 +76,25 @@ private struct TripNotesList: View {
     }
 }
 
+// MARK: - Thought list row
+
+private struct ThoughtListRow: View {
+    @Bindable var note: Note
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            UnreviewedDot(show: !note.isReviewed)
+                .padding(.top, 6)
+            NotePreviewLabel(note: note)
+        }
+        .accessibilityValue(note.isReviewed ? "" : "Unreviewed")
+    }
+}
+
 // MARK: - Preview (first ~3 lines)
 
 private struct NotePreviewLabel: View {
-    let note: Note
+    @Bindable var note: Note
     @Environment(AppSession.self) private var session
 
     private var decrypted: String? {

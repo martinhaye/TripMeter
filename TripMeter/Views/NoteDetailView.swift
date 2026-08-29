@@ -7,11 +7,17 @@ struct NoteDetailView: View {
     let notes: [Note]
     @State private var selectedNoteID: PersistentIdentifier
     @Environment(AppSession.self) private var session
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
     @State private var isCurrentPageDirty = false
     @State private var saveCurrentPage: (() -> Bool)?
     @State private var showLeaveConfirm = false
+    @State private var pendingReviewIDs: Set<PersistentIdentifier> = []
+    @State private var reviewMarkWork: DispatchWorkItem?
+
+    /// Long enough that the page swipe can finish before SwiftData observers rebuild.
+    private static let reviewMarkDelay: TimeInterval = 0.45
 
     init(trip: Trip, note: Note) {
         self.trip = trip
@@ -78,9 +84,14 @@ struct NoteDetailView: View {
                 }
             }
         }
+        .onAppear {
+            markCurrentAsReviewed()
+        }
         .onChange(of: selectedNoteID) { _, _ in
             isCurrentPageDirty = false
             saveCurrentPage = nil
+            // Defer the model write: saving `isReviewed` mid-swipe hitches the first page animation.
+            scheduleMarkCurrentAsReviewed()
         }
         .onChange(of: trip.notes.count) { _, _ in
             if currentNote == nil, let first = orderedNotes.first {
@@ -109,6 +120,50 @@ struct NoteDetailView: View {
             showLeaveConfirm = true
         } else {
             dismiss()
+        }
+    }
+
+    private func markCurrentAsReviewed() {
+        guard let note = currentNote, !note.isReviewed else { return }
+        commitReviews(ids: [note.persistentModelID], notes: orderedNotes, context: modelContext)
+    }
+
+    private func scheduleMarkCurrentAsReviewed() {
+        guard let note = currentNote, !note.isReviewed else { return }
+        pendingReviewIDs.insert(note.persistentModelID)
+        reviewMarkWork?.cancel()
+        let ids = pendingReviewIDs
+        let snapshot = orderedNotes
+        let context = modelContext
+        let work = DispatchWorkItem {
+            commitReviews(ids: ids, notes: snapshot, context: context)
+        }
+        reviewMarkWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.reviewMarkDelay, execute: work)
+    }
+}
+
+private func commitReviews(
+    ids: Set<PersistentIdentifier>,
+    notes: [Note],
+    context: ModelContext
+) {
+    guard !ids.isEmpty else { return }
+    var changed = false
+    var transaction = Transaction()
+    transaction.disablesAnimations = true
+    withTransaction(transaction) {
+        for note in notes where ids.contains(note.persistentModelID) && !note.isReviewed {
+            note.isReviewed = true
+            changed = true
+        }
+    }
+    guard changed else { return }
+    do {
+        try context.save()
+    } catch {
+        for note in notes where ids.contains(note.persistentModelID) {
+            note.isReviewed = false
         }
     }
 }
@@ -169,6 +224,16 @@ private struct NoteDetailPage: View {
                 .buttonStyle(.borderedProminent)
                 .disabled(session.unlockedPrivateKey == nil || !pageIsDirty)
             }
+
+            Button {
+                toggleContraband()
+            } label: {
+                Text(note.isContraband ? "Un-smuggle" : "Smuggle")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .disabled(session.unlockedPrivateKey == nil)
         }
         .padding()
         .onAppear(perform: load)
@@ -229,6 +294,17 @@ private struct NoteDetailPage: View {
             }
         } catch {
             loadError = error.localizedDescription
+        }
+    }
+
+    private func toggleContraband() {
+        saveError = nil
+        note.isContraband.toggle()
+        do {
+            try modelContext.save()
+        } catch {
+            note.isContraband.toggle()
+            saveError = error.localizedDescription
         }
     }
 
