@@ -87,6 +87,10 @@ struct RootCoordinatorView: View {
         .onReceive(NotificationCenter.default.publisher(for: .tripMeterDidUnlock)) { _ in
             selectedTab = 1
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.protectedDataWillBecomeUnavailableNotification)) { _ in
+            cancelBackgroundLock()
+            session.lock()
+        }
         .overlay {
             if scenePhase != .active {
                 Color(.systemBackground)
